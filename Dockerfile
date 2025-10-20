@@ -16,5 +16,5 @@ COPY . .
 ENV PORT=8080
 EXPOSE 8080
 
-# 実行コマンド（Flask or FastAPI の場合）
-CMD ["python", "main.py"]
+# 新:
+CMD ["gunicorn", "-b", ":8080", "main:app"]
