@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "✅ horse-nft-lab-clean is alive!!"
+    return "✅ horse-nft-lab-clean is alive!!!"
 
 if __name__ == "__main__":
     import os
