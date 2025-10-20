@@ -1,1 +1,23 @@
+steps:
+  # Dockerイメージをビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab', '.']
 
+  # Artifact Registry に push
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab']
+
+  # Cloud Run にデプロイ
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      [
+        'run', 'deploy', 'horse-nft-lab',
+        '--image', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab',
+        '--region', 'asia-northeast1',
+        '--platform', 'managed',
+        '--allow-unauthenticated'
+      ]
+
+images:
+  - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab'
