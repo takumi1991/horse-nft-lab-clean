@@ -102,4 +102,5 @@ def generate():
     return render_template_string(RESULT_HTML, name=horse_name, description=desc, image_url=image_url)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
