@@ -72,7 +72,7 @@ def generate():
 
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("models/gemini-1.5-flash-latest")
 
         # ✅ 馬の説明文を生成
         prompt = "性格診断の結果に基づいて理想の馬の特徴を説明してください: " + str(traits)
