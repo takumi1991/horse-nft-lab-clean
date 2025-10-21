@@ -133,14 +133,11 @@ def generate():
   "name": "馬名",
   "type": "脚質（逃げ・先行・差し・追込）",
   "stats": {{
-    "Speed": 数値,
-    "Stamina": 数値,
-    "Power": 数値,
-    "Agility": 数値,
-    "Intelligence": 数値,
-    "Temperament": 数値,
-    "Endurance": 数値,
-    "Charm": 数値
+    "スピード": 数値,
+    "スタミナ": 数値,
+    "パワー": 数値,
+    "コーナリング": 数値,
+    "判断力": 数値
   }}
 }}
         """
@@ -173,7 +170,7 @@ def generate():
         stats_star = {k: stars(v) for k, v in stats.items()}
 
         # --- 画像生成 ---
-        image_prompt = f"A fantasy racehorse named {name}, {type_} running style, cinematic lighting, detailed, dynamic pose."
+        image_prompt = f"A professional racehorse named {name}, running in a real horse racing track, {type_} running style, realistic photo, dynamic motion, dirt flying, Japanese horse racing scene."
         image_model = genai.GenerativeModel("gemini-2.5-flash-image")
         img_response = image_model.generate_content(image_prompt)
 
