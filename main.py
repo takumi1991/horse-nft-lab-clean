@@ -54,19 +54,60 @@ HTML_FORM = """
 RESULT_HTML = """
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><title>AI競走馬結果</title></head>
+<head>
+  <meta charset="utf-8">
+  <title>AI競走馬結果</title>
+  <style>
+    body {
+      font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      text-align: center;
+      background-color: #fafafa;
+      margin: 40px;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 0.2em;
+    }
+    img {
+      display: block;
+      margin: 20px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      display: inline-block;
+      text-align: left;
+    }
+    li {
+      margin: 4px 0;
+      font-size: 1.1em;
+    }
+    p {
+      font-size: 1.1em;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
 <body>
   <h1>🐎 {{name}}</h1>
   <p><b>脚質:</b> {{type}}</p>
   {% if image_url %}
-    <img src="{{image_url}}" width="400"><br><br>
+    <img src="{{image_url}}" width="500">
   {% else %}
     <p>⚠️ 画像生成に失敗しました。</p>
   {% endif %}
   <h3>能力ステータス</h3>
   <ul>
     {% for k, v in stats.items() %}
-      <li><b>{{k}}</b>: {{v}}</li>
+      <li><b>{{k}}:</b> {{v}}</li>
     {% endfor %}
   </ul>
   <p><a href="/">もう一度診断する</a></p>
