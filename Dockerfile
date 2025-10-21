@@ -1,19 +1,26 @@
 # ベースイメージ
 FROM python:3.11-slim
 
+# 環境変数（Cloud Run用）
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
+
 # 作業ディレクトリ
 WORKDIR /app
 
-# 依存関係をコピーしてインストール
+# 依存関係をコピー
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# アプリ本体をコピー
+# パッケージをクリーンにインストール
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip uninstall -y google-generativeai || true && \
+    pip install --no-cache-dir -r requirements.txt
+
+# アプリをコピー
 COPY . .
 
-# Cloud Run でリッスンするポート
-ENV PORT=8080
+# ポートを公開
 EXPOSE 8080
 
-# 新:
-CMD ["gunicorn", "--workers=1", "--timeout=0", "main:app"]
+# GunicornでFlask起動
+CMD ["gunicorn", "--workers=1", "--threads=8", "--timeout=0", "main:app"]
