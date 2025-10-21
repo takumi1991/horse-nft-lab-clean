@@ -136,8 +136,7 @@ def generate():
     "スピード": 数値,
     "スタミナ": 数値,
     "パワー": 数値,
-    "コーナリング": 数値,
-    "判断力": 数値
+    "敏捷性": 数値
   }}
 }}
         """
@@ -170,7 +169,7 @@ def generate():
         stats_star = {k: stars(v) for k, v in stats.items()}
 
         # --- 画像生成 ---
-        image_prompt = f"A professional racehorse named {name}, running in a real horse racing track, {type_} running style, realistic photo, dynamic motion, dirt flying, Japanese horse racing scene."
+        image_prompt = f"A realistic racehorse named {name}, running alone on a professional Japanese race track, {type_} running style, no humans, no jockeys, no text, no logo, realistic lighting, motion blur, dirt flying, detailed photo style."
         image_model = genai.GenerativeModel("gemini-2.5-flash-image")
         img_response = image_model.generate_content(image_prompt)
 
