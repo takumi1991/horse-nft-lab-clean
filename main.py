@@ -4,7 +4,7 @@ import uuid
 from flask import Flask, render_template, render_template_string, request
 import google.generativeai as genai
 from google.cloud import storage
-from datetime import datetime
+from datetime import datetime, timedelta  # ← timedelta をここで import！
 from PIL import Image, ImageDraw
 import io
 
