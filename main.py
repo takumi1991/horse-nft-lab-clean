@@ -54,9 +54,10 @@ def generate():
         description = response.text
 
         # 画像生成（仮：テキストを画像化）
-        img = Image.new("RGB", (512, 512), color=(255, 255, 255))
+        img = Image.new("RGB", (1024, 1024), "white")
         draw = ImageDraw.Draw(img)
-        draw.text((10, 10), description[:100], fill=(0, 0, 0))
+        draw.rectangle((0,0,1024,120), fill=(240,240,240))
+        draw.text((20,40), description[:60], fill=(0,0,0))  # 先頭だけでも
 
         # GCS アップロード
         bucket = storage_client.bucket(GCS_BUCKET)
