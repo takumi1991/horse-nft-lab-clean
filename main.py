@@ -106,6 +106,13 @@ def generate():
         blob.upload_from_string(buf.getvalue(), content_type="image/png")
         print(f"Image uploaded to GCS: {blob.public_url}", file=sys.stderr)
 
+        # 🧹 メモリ解放（OutOfMemory対策）
+        img.close()
+        del img
+        buf.close()
+        del buf
+
+
         return render_template("result.html", description=description, image_url=blob.public_url)
 
     except Exception as e:
