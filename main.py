@@ -37,33 +37,45 @@ HTML_FORM = """
 <head>
 <meta charset="utf-8">
 <title>AI競走馬メーカー</title>
+<!-- LottieFiles Player -->
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 <style>
-  body { text-align: center; font-family: sans-serif; background: #fafafa; }
-  h1 { color: #333; }
-  .loader {
+  body {
+    text-align: center;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, #fefefe 0%, #f5f5f5 100%);
+    color: #222;
+  }
+  h1 {
+    margin-top: 40px;
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+  form {
+    margin-top: 30px;
+  }
+  input[type=submit] {
+    padding: 10px 25px;
+    font-size: 1rem;
+    border: none;
+    background: #333;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  input[type=submit]:hover {
+    background: #555;
+  }
+  #loading {
     display: none;
-    margin: 50px auto;
-    width: 80px;
-    height: 80px;
-    border: 8px solid #ddd;
-    border-top: 8px solid #333;
-    border-radius: 50%;
-    animation: spin 1.2s linear infinite;
+    margin-top: 60px;
   }
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  .loading-text {
+    font-size: 1.1rem;
+    color: #555;
+    margin-top: -20px;
   }
-  .sandclock {
-    display: none;
-    font-size: 64px;
-    animation: flip 1.5s infinite;
-  }
-  @keyframes flip {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(180deg); }
-  }
-  form { margin-top: 40px; }
 </style>
 <script>
   function showLoader() {
@@ -85,9 +97,15 @@ HTML_FORM = """
   </form>
 
   <div id="loading">
-    <div class="sandclock">⏳</div>
-    <div class="loader"></div>
-    <p>AIがあなたの理想の競走馬を生成しています…</p>
+    <lottie-player
+      src="https://lottie.host/2f5e7b29-29a9-41e4-86ab-07981efc807f/2t3jRbL6g8.json"
+      background="transparent"
+      speed="1"
+      style="width: 220px; height: 220px; margin: 0 auto;"
+      loop
+      autoplay>
+    </lottie-player>
+    <p class="loading-text">AIがあなたの理想の競走馬を生成しています…</p>
   </div>
 </body>
 </html>
