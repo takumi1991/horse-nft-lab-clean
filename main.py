@@ -31,14 +31,50 @@ def stars(score):
         level = 1
     return "★" * level + "☆" * (5 - level)
 
-# --- HTML ---
 HTML_FORM = """
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><title>AI競走馬メーカー</title></head>
+<head>
+<meta charset="utf-8">
+<title>AI競走馬メーカー</title>
+<style>
+  body { text-align: center; font-family: sans-serif; background: #fafafa; }
+  h1 { color: #333; }
+  .loader {
+    display: none;
+    margin: 50px auto;
+    width: 80px;
+    height: 80px;
+    border: 8px solid #ddd;
+    border-top: 8px solid #333;
+    border-radius: 50%;
+    animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .sandclock {
+    display: none;
+    font-size: 64px;
+    animation: flip 1.5s infinite;
+  }
+  @keyframes flip {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+  }
+  form { margin-top: 40px; }
+</style>
+<script>
+  function showLoader() {
+    document.querySelector("form").style.display = "none";
+    document.getElementById("loading").style.display = "block";
+  }
+</script>
+</head>
 <body>
   <h1>🐴 AI競走馬メーカー</h1>
-  <form action="/generate" method="post">
+  <form action="/generate" method="post" onsubmit="showLoader()">
     <p>あなたの性格タイプを選んでください：</p>
     <input type="checkbox" name="traits" value="brave">勇敢
     <input type="checkbox" name="traits" value="calm">落ち着き
@@ -47,6 +83,12 @@ HTML_FORM = """
     <input type="checkbox" name="traits" value="clever">賢い
     <p><input type="submit" value="診断開始"></p>
   </form>
+
+  <div id="loading">
+    <div class="sandclock">⏳</div>
+    <div class="loader"></div>
+    <p>AIがあなたの理想の競走馬を生成しています…</p>
+  </div>
 </body>
 </html>
 """
