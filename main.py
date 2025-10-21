@@ -49,7 +49,7 @@ def generate():
         traits = request.form.getlist("traits")
         prompt = f"性格タイプ: {traits} に基づき、理想の馬の特徴を説明してください。"
 
-        model = genai.GenerativeModel("gemini-1.5-flash-latest")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(prompt)
         description = response.text
 
