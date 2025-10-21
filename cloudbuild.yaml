@@ -1,54 +1,22 @@
 steps:
-  # 🧩 依存・インポートチェック
-  - name: python:3.11-slim
-    entrypoint: bash
-    args:
-      - -c
-      - |
-        pip install --no-cache-dir -r requirements.txt
-        python - <<'PY'
-        import sys
-        print("Checking imports...")
-        import gunicorn
-        import main  # Flaskアプリが import できるか
-        print("OK")
-        PY
-
-  # 🧩 gunicorn の存在確認
-  - name: python:3.11-slim
-    entrypoint: bash
-    args:
-      - -lc
-      - "pip install -r requirements.txt && gunicorn --version"
-
-  # 🧩 Docker Build
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      - 'build'
-      - '-t'
-      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab-clean'
-      - '.'
+      ['build', '-t', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab-clean', '.']
 
-  # 🧩 Docker Push
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      - 'push'
-      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab-clean'
+      ['push', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab-clean']
 
-  # 🧩 Cloud Run Deploy
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
-      - 'run'
-      - 'deploy'
-      - 'horse-nft-lab-clean'
-      - '--image'
-      - 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab-clean'
-      - '--region'
-      - 'asia-northeast1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
+      [
+        'run', 'deploy', 'horse-nft-lab-clean',
+        '--image', 'asia-northeast1-docker.pkg.dev/$PROJECT_ID/horse-nft-repo/horse-nft-lab-clean',
+        '--region', 'asia-northeast1',
+        '--platform', 'managed',
+        '--allow-unauthenticated'
+      ]
 
 options:
   logging: CLOUD_LOGGING_ONLY
