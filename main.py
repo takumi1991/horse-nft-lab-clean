@@ -43,7 +43,7 @@ HTML_FORM = """
   body {
     text-align: center;
     font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(180deg, #fefefe 0%, #f5f5f5 100%);
+    background: radial-gradient(circle at center, #fefefe 0%, #e5e5e5 100%);
     color: #222;
   }
   h1 {
@@ -69,7 +69,7 @@ HTML_FORM = """
   }
   #loading {
     display: none;
-    margin-top: 60px;
+    margin-top: 40px;
   }
   .loading-text {
     font-size: 1.1rem;
@@ -98,14 +98,14 @@ HTML_FORM = """
 
   <div id="loading">
     <lottie-player
-      src="https://lottie.host/2f5e7b29-29a9-41e4-86ab-07981efc807f/2t3jRbL6g8.json"
+      src="https://lottie.host/48b5a061-1b33-4e6e-8ef1-bb17f8376ed5/3BrqykKJ6H.json"
       background="transparent"
       speed="1"
-      style="width: 220px; height: 220px; margin: 0 auto;"
+      style="width: 320px; height: 320px; margin: 0 auto;"
       loop
       autoplay>
     </lottie-player>
-    <p class="loading-text">AIがあなたの理想の競走馬を生成しています…</p>
+    <p class="loading-text">🏇 AIがあなたの競走馬を走らせています…</p>
   </div>
 </body>
 </html>
