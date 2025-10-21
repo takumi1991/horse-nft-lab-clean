@@ -1,7 +1,12 @@
-import os, uuid, io, json, traceback, sys
-from flask import Flask, render_template_string, request
-from google import genai
+import os
+import uuid
+import io
+from flask import Flask, render_template, render_template_string, request
+import google.generativeai as genai  # ←ここを修正！
+from PIL import Image, ImageDraw
 from google.cloud import storage
+from datetime import timedelta
+import sys, traceback
 
 app = Flask(__name__)
 
