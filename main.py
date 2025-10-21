@@ -78,7 +78,7 @@ def generate():
         img.close()
         del img
 
-        return render_template("result.html", description=description, image_url=image_url)
+        return render_template("result.html", description=description, image_url=signed_url)
 
     except Exception:
         print(traceback.format_exc(), file=sys.stderr)
