@@ -1,5 +1,4 @@
-flask
-google-genai
-google-cloud-storage
-pillow
-gunicorn
+Flask==3.0.3
+google-cloud-storage==2.16.0
+google-generativeai==0.8.3
+Pillow==10.3.0
