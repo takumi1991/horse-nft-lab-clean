@@ -1,12 +1,12 @@
 import os
+import json
 import uuid
-import io
-from flask import Flask, render_template, render_template_string, request
-from google import genai
-from PIL import Image, ImageDraw
-from google.cloud import storage
+from flask import Flask, render_template_string, request
+import google.generativeai as genai
 from datetime import timedelta
-import sys, traceback
+from google.cloud import storage
+import io
+from PIL import Image, ImageDraw
 
 app = Flask(__name__)
 
@@ -14,10 +14,17 @@ app = Flask(__name__)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GCS_BUCKET = os.getenv("GCS_BUCKET")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
 storage_client = storage.Client()
 
-# --- HTMLフォーム ---
+
+def stars(score):
+    """0〜100を★5段階に変換"""
+    level = round(score / 20)
+    return "★" * level + "☆" * (5 - level)
+
+
+# --- HTML ---
 HTML_FORM = """
 <!doctype html>
 <html lang="ja">
@@ -37,56 +44,89 @@ HTML_FORM = """
 </html>
 """
 
+RESULT_HTML = """
+<!doctype html>
+<html lang="ja">
+  <head><meta charset="utf-8"><title>診断結果</title></head>
+  <body>
+    <h1>🐎 {{name}}</h1>
+    <p><strong>脚質:</strong> {{type}}</p>
+    <img src="{{image_url}}" width="300"><br>
+    <h3>能力ステータス</h3>
+    <ul>
+      {% for k, v in stats.items() %}
+        <li><b>{{k}}</b>: {{v}}</li>
+      {% endfor %}
+    </ul>
+    <p><a href="/">もう一度診断する</a></p>
+  </body>
+</html>
+"""
+
+
 @app.route("/")
 def index():
     return render_template_string(HTML_FORM)
 
+
 @app.route("/generate", methods=["POST"])
 def generate():
-    print("=== /generate called ===", file=sys.stderr)
     try:
         traits = request.form.getlist("traits")
-        prompt_text = f"性格タイプ: {traits} に基づき、理想の馬の特徴を説明してください。"
-        image_prompt = f"A detailed artistic illustration of a {traits} horse, fantasy style, vivid colors, highly detailed."
 
-        # --- テキスト生成（説明文） ---
-        text_response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=[prompt_text],
-        )
-        description = text_response.candidates[0].content.parts[0].text
+        # Gemini出力をJSONで要求
+        prompt = f"""
+性格タイプ {traits} に基づいて、以下形式のJSONを返してください。
+馬名と脚質、そして8つの能力値（0〜100）を含めてください。
 
-        # --- 画像生成（Gemini Imageモデル） ---
-        image_response = client.models.generate_content(
-            model="gemini-2.5-flash-image",
-            contents=[image_prompt],
-        )
+{{
+  "name": "馬名",
+  "type": "脚質（逃げ・先行・差し・追込）",
+  "stats": {{
+    "Speed": 数値,
+    "Stamina": 数値,
+    "Power": 数値,
+    "Agility": 数値,
+    "Intelligence": 数値,
+    "Temperament": 数値,
+    "Endurance": 数値,
+    "Charm": 数値
+  }}
+}}
+        """
 
-        image_bytes = None
-        for part in image_response.candidates[0].content.parts:
-            if getattr(part, "inline_data", None) and getattr(part.inline_data, "data", None):
-                image_bytes = part.inline_data.data
-                break
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = model.generate_content(prompt)
+        text = response.text.strip()
 
-        if not image_bytes:
-            print("❌ Geminiが画像を返しませんでした。テキストのみの応答です。", file=sys.stderr)
-            return f"<h1>診断結果</h1><p>{description}</p><p>（画像の生成に失敗しました）</p>", 200
+        # JSONパース
+        data = json.loads(text)
+        name = data.get("name", "Unknown Horse")
+        type_ = data.get("type", "不明")
+        stats = data.get("stats", {})
 
-        # --- GCS アップロード ---
+        # 星表示に変換
+        stats_star = {k: stars(v) for k, v in stats.items()}
+
+        # --- ダミー画像生成（馬のサムネ） ---
+        img = Image.new("RGB", (512, 512), "white")
+        draw = ImageDraw.Draw(img)
+        draw.text((20, 200), f"{name}\n({type_})", fill=(0, 0, 0))
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+
         bucket = storage_client.bucket(GCS_BUCKET)
-        file_name = f"output/horse_{uuid.uuid4().hex[:8]}.png"
-        blob = bucket.blob(file_name)
-        blob.upload_from_string(image_bytes, content_type="image/png")
+        filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
+        blob = bucket.blob(filename)
+        blob.upload_from_string(buf.getvalue(), content_type="image/png")
         image_url = blob.public_url
 
-        print(f"✅ 画像アップロード完了: {image_url}", file=sys.stderr)
+        return render_template_string(RESULT_HTML, name=name, type=type_, stats=stats_star, image_url=image_url)
 
-        return render_template("result.html", description=description, image_url=image_url)
-
-    except Exception:
-        print("=== ERROR OCCURRED ===", file=sys.stderr)
+    except Exception as e:
+        import traceback, sys
         print(traceback.format_exc(), file=sys.stderr)
-        return "Internal Server Error", 500
+        return f"Internal Error: {str(e)}", 500
 
 
 if __name__ == "__main__":
