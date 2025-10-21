@@ -1,6 +1,7 @@
 import os
 import uuid
 import io
+import json
 from flask import Flask, render_template, render_template_string, request
 import google.generativeai as genai  # ←ここを修正！
 from PIL import Image, ImageDraw
