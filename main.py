@@ -23,7 +23,7 @@ HTML_FORM = """
 <html lang="ja">
   <head><meta charset="utf-8"><title>馬性格診断</title></head>
   <body>
-    <h1>🐴 あなたの理想の馬を診断</h1>
+    <h1>🐴 あなたの理想の馬を診断1</h1>
     <form action="/generate" method="post">
       <p>性格タイプを選んでください：</p>
       <input type="checkbox" name="traits" value="brave">勇敢
