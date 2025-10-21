@@ -97,14 +97,14 @@ HTML_FORM = """
   </form>
 
   <div id="loading">
-    <lottie-player
-      src="https://lottie.host/48b5a061-1b33-4e6e-8ef1-bb17f8376ed5/3BrqykKJ6H.json"
-      background="transparent"
-      speed="1"
-      style="width: 320px; height: 320px; margin: 0 auto;"
-      loop
-      autoplay>
-    </lottie-player>
+<lottie-player
+  src="https://assets10.lottiefiles.com/packages/lf20_7zv3zj8m.json"
+  background="transparent"
+  speed="1"
+  style="width: 320px; height: 320px; margin: 0 auto;"
+  loop
+  autoplay>
+</lottie-player>
     <p class="loading-text">🏇 AIがあなたの競走馬を走らせています…</p>
   </div>
 </body>
