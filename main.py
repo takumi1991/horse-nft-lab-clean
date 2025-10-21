@@ -18,7 +18,8 @@ if not GEMINI_API_KEY:
 if not GCS_BUCKET:
     raise RuntimeError("GCS_BUCKET が設定されていません。")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+# ✅ 新しい初期化方法
+genai.configure(api_key=GEMINI_API_KEY)
 storage_client = storage.Client()
 
 # --- 星変換 ---
