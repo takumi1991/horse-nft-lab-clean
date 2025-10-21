@@ -31,82 +31,75 @@ def stars(score):
         level = 1
     return "★" * level + "☆" * (5 - level)
 
+# --- HTML ---
 HTML_FORM = """
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<title>AI競走馬メーカー</title>
-<!-- LottieFiles Player -->
-<script src="https://unpkg.com/@lottiefiles/lottie-player@1.6.0/dist/lottie-player.js"></script>
-<style>
-  body {
-    text-align: center;
-    font-family: 'Segoe UI', sans-serif;
-    background: radial-gradient(circle at center, #fefefe 0%, #e5e5e5 100%);
-    color: #222;
-  }
-  h1 {
-    margin-top: 40px;
-    font-size: 2rem;
-    letter-spacing: 1px;
-  }
-  form {
-    margin-top: 30px;
-  }
-  input[type=submit] {
-    padding: 10px 25px;
-    font-size: 1rem;
-    border: none;
-    background: #333;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  input[type=submit]:hover {
-    background: #555;
-  }
-  #loading {
-    display: none;
-    margin-top: 40px;
-  }
-  .loading-text {
-    font-size: 1.1rem;
-    color: #555;
-    margin-top: -20px;
-  }
-</style>
-<script>
-  function showLoader() {
-    document.querySelector("form").style.display = "none";
-    document.getElementById("loading").style.display = "block";
-  }
-</script>
+  <meta charset="utf-8">
+  <title>AI競走馬メーカー</title>
+  <script>
+    function showLoading() {
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('loading-section').style.display = 'block';
+    }
+  </script>
+  <style>
+    body { text-align:center; font-family:sans-serif; background:#fffaf0; }
+    #loading-section { display:none; margin-top:50px; }
+  </style>
+  <!-- Lottie プレイヤー -->
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 </head>
 <body>
   <h1>🐴 AI競走馬メーカー</h1>
-  <form action="/generate" method="post" onsubmit="showLoader()">
-    <p>あなたの性格タイプを選んでください：</p>
-    <input type="checkbox" name="traits" value="brave">勇敢
-    <input type="checkbox" name="traits" value="calm">落ち着き
-    <input type="checkbox" name="traits" value="agile">俊敏
-    <input type="checkbox" name="traits" value="loyal">忠実
-    <input type="checkbox" name="traits" value="clever">賢い
-    <p><input type="submit" value="診断開始"></p>
-  </form>
 
-  <div id="loading">
-<lottie-player
-  src="https://assets10.lottiefiles.com/packages/lf20_7zv3zj8m.json"
-  background="transparent"
-  speed="1"
-  style="width: 320px; height: 320px; margin: 0 auto;"
-  loop
-  autoplay>
-</lottie-player>
-    <p class="loading-text">🏇 AIがあなたの競走馬を走らせています…</p>
+  <div id="form-section">
+    <form action="/generate" method="post" onsubmit="showLoading()">
+      <p>あなたの性格タイプを選んでください：</p>
+      <input type="checkbox" name="traits" value="brave">勇敢
+      <input type="checkbox" name="traits" value="calm">落ち着き
+      <input type="checkbox" name="traits" value="agile">俊敏
+      <input type="checkbox" name="traits" value="loyal">忠実
+      <input type="checkbox" name="traits" value="clever">賢い
+      <p><input type="submit" value="診断開始"></p>
+    </form>
   </div>
+
+  <div id="loading-section">
+    <h2>結果を生成中です…</h2>
+    <lottie-player src="/static/horse_runner.json" background="transparent" speed="1" style="width:300px;height:300px;margin:auto;" loop autoplay></lottie-player>
+    <p>AIがあなたの理想の競走馬を生み出しています。</p>
+  </div>
+</body>
+</html>
+"""
+
+RESULT_HTML = """
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><title>AI競走馬結果</title>
+  <style>
+    body { text-align:center; font-family:sans-serif; background:#fffaf0; }
+    img { border-radius:10px; margin-top:15px; }
+  </style>
+</head>
+<body>
+  <h1>🐎 {{name}}</h1>
+  <p><b>脚質:</b> {{type}}</p>
+  {% if image_url %}
+    <img src="{{image_url}}" width="400"><br><br>
+  {% else %}
+    <p>⚠️ 画像生成に失敗しました。</p>
+  {% endif %}
+  <h3>能力ステータス</h3>
+  <ul style="list-style:none; padding:0;">
+    {% for k, v in stats.items() %}
+      <li><b>{{k}}</b>: {{v}}</li>
+    {% endfor %}
+  </ul>
+  <p><a href="/">もう一度診断する</a></p>
 </body>
 </html>
 """
