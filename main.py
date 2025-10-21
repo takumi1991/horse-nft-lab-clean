@@ -5,7 +5,7 @@ from flask import Flask, render_template, render_template_string, request
 import google.generativeai as genai
 from google.cloud import storage
 from datetime import datetime
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 import io
 
 app = Flask(__name__)
@@ -17,13 +17,13 @@ GCS_BUCKET = os.getenv("GCS_BUCKET")
 genai.configure(api_key=GEMINI_API_KEY)
 storage_client = storage.Client()
 
-# --- HTMLテンプレート ---
+# --- HTMLフォーム ---
 HTML_FORM = """
 <!doctype html>
 <html lang="ja">
   <head><meta charset="utf-8"><title>馬性格診断</title></head>
   <body>
-    <h1>🐴 あなたの理想の馬を診断1</h1>
+    <h1>🐴 あなたの理想の馬を診断</h1>
     <form action="/generate" method="post">
       <p>性格タイプを選んでください：</p>
       <input type="checkbox" name="traits" value="brave">勇敢
@@ -37,20 +37,6 @@ HTML_FORM = """
 </html>
 """
 
-# --- 結果ページ ---
-RESULT_HTML = """
-<!doctype html>
-<html lang="ja">
-  <head><meta charset="utf-8"><title>診断結果</title></head>
-  <body>
-    <h1>🐎 あなたの馬：{{name}}</h1>
-    <img src="{{image_url}}" width="300"><br>
-    <p>{{description}}</p>
-    <p><a href="/">もう一度診断する</a></p>
-  </body>
-</html>
-"""
-
 @app.route("/")
 def index():
     return render_template_string(HTML_FORM)
@@ -60,65 +46,36 @@ def generate():
     import traceback, sys
     print("=== /generate called ===", file=sys.stderr)
     try:
-        # ✅ フォームデータの取得
-        traits = request.form.to_dict()
-        print(f"Traits received: {traits}", file=sys.stderr)
+        traits = request.form.getlist("traits")
+        prompt = f"性格タイプ: {traits} に基づき、理想の馬の特徴を説明してください。"
 
-        # ✅ Gemini API キー確認
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            print("ERROR: GEMINI_API_KEY not set", file=sys.stderr)
-            return "Internal error: missing API key", 500
-
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        # ✅ 「models/」を付けず、「v1」ルートを利用
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content("テストです。")
-        print(response.text)
-
-        # ✅ 馬の説明文を生成
-        prompt = "性格診断の結果に基づいて理想の馬の特徴を説明してください: " + str(traits)
+        model = genai.GenerativeModel("gemini-1.5-flash-latest")
         response = model.generate_content(prompt)
         description = response.text
-        print(f"Gemini response: {description}", file=sys.stderr)
 
-        # ✅ 画像生成（仮にテキストを画像に）
-        from PIL import Image, ImageDraw, ImageFont
+        # 画像生成（仮：テキストを画像化）
         img = Image.new("RGB", (512, 512), color=(255, 255, 255))
         draw = ImageDraw.Draw(img)
         draw.text((10, 10), description[:100], fill=(0, 0, 0))
 
-        # ✅ GCS アップロード処理
-        from google.cloud import storage
-        bucket_name = os.getenv("GCS_BUCKET")
-        if not bucket_name:
-            print("ERROR: GCS_BUCKET not set", file=sys.stderr)
-            return "Internal error: missing bucket", 500
-
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob("output/horse_image.png")
-
-        from io import BytesIO
-        buf = BytesIO()
+        # GCS アップロード
+        bucket = storage_client.bucket(GCS_BUCKET)
+        blob = bucket.blob(f"output/horse_{uuid.uuid4().hex[:8]}.png")
+        buf = io.BytesIO()
         img.save(buf, format="PNG")
         blob.upload_from_string(buf.getvalue(), content_type="image/png")
-        print(f"Image uploaded to GCS: {blob.public_url}", file=sys.stderr)
+        image_url = blob.public_url
 
-        # 🧹 メモリ解放（OutOfMemory対策）
+        # メモリ解放
         img.close()
         del img
-        buf.close()
-        del buf
 
+        return render_template("result.html", description=description, image_url=image_url)
 
-        return render_template("result.html", description=description, image_url=blob.public_url)
-
-    except Exception as e:
-        print("=== ERROR OCCURRED ===", file=sys.stderr)
+    except Exception:
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
