@@ -67,12 +67,12 @@ def generate():
         blob.upload_from_string(buf.getvalue(), content_type="image/png")
         image_url = blob.public_url
 
-        # ←ここを追加: 署名付きURL(V4)
-      　signed_url = blob.generate_signed_url(
-      　  version="v4",
-    　　  expiration=timedelta(days=7),  # 有効期限は適宜
-    　　  method="GET",
-　　　　 )
+        # ✅ 署名付きURL(V4)
+        signed_url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(days=7),  # 有効期限7日
+            method="GET",
+        )
 
         # メモリ解放
         img.close()
