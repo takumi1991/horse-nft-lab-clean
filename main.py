@@ -1,12 +1,9 @@
 import os
-import json
 import uuid
-from flask import Flask, render_template, render_template_string, request
-import google.generativeai as genai
-from google.cloud import storage
-from datetime import datetime
-from PIL import Image, ImageDraw
 import io
+from flask import Flask, render_template, render_template_string, request
+from google.cloud import storage
+import google.generativeai as genai
 
 app = Flask(__name__)
 
@@ -47,37 +44,38 @@ def generate():
     print("=== /generate called ===", file=sys.stderr)
     try:
         traits = request.form.getlist("traits")
-        prompt = f"性格タイプ: {traits} に基づき、理想の馬の特徴を説明してください。"
+        trait_text = ", ".join(traits) if traits else "優しい"
+        prompt = f"性格: {trait_text} の馬のキャラクターイラストを生成してください。シンプルで明るい背景。"
 
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content(prompt)
-        description = response.text
+        # ✅ 説明文をまず生成
+        model_text = genai.GenerativeModel("gemini-2.5-flash")
+        desc_response = model_text.generate_content(f"{trait_text}な性格の理想の馬の特徴を説明してください。")
+        description = desc_response.text
 
-        # 画像生成（仮：テキストを画像化）
-        img = Image.new("RGB", (1024, 1024), "white")
-        draw = ImageDraw.Draw(img)
-        draw.rectangle((0, 0, 1024, 120), fill=(240, 240, 240))
-        draw.text((20, 40), description[:60], fill=(0, 0, 0))
+        # ✅ 画像生成（Gemini）
+        model_image = genai.GenerativeModel("gemini-2.5-flash")
+        image_response = model_image.generate_content(
+            [prompt],
+            generation_config={"response_mime_type": "image/png"}
+        )
 
-        # ✅ GCS アップロード（public_url使用）
+        # ✅ バイナリデータとして取得
+        image_data = image_response._result.candidates[0].content.parts[0].inline_data.data
+        image_bytes = io.BytesIO(image_data)
+
+        # ✅ GCSアップロード
         bucket = storage_client.bucket(GCS_BUCKET)
         blob_name = f"output/horse_{uuid.uuid4().hex[:8]}.png"
         blob = bucket.blob(blob_name)
+        blob.upload_from_string(image_bytes.getvalue(), content_type="image/png")
 
-        buf = io.BytesIO()
-        img.save(buf, format="PNG")
-        blob.upload_from_string(buf.getvalue(), content_type="image/png")
-
-        # ✅ 公開URLを取得
         image_url = blob.public_url
-        print(f"Image uploaded to GCS: {image_url}", file=sys.stderr)
-
-        img.close()
-        del img
+        print(f"Image uploaded: {image_url}", file=sys.stderr)
 
         return render_template("result.html", description=description, image_url=image_url)
 
     except Exception:
+        print("=== ERROR OCCURRED ===", file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
 
