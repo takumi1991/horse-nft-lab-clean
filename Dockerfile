@@ -1,4 +1,3 @@
-
 # ベースイメージ
 FROM python:3.11-slim
 
@@ -17,4 +16,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 # 新:
-CMD ["gunicorn", "-b", ":8080", "main:app"]
+CMD ["gunicorn", "--workers=1", "--timeout=0", "main:app"]
