@@ -83,67 +83,57 @@ def generate():
     try:
         traits = request.form.getlist("traits")
 
-        # --- JSON形式で能力を生成 ---
-        prompt = f"""
-性格タイプ {traits} に基づき、以下のJSON形式で出力してください。
-文章は不要です。
+        # --- JSON構造の出力 ---
+        model = genai.GenerativeModel("gemini-2.5-flash")
+
+        prompt_json = f"""
+性格タイプ {traits} に基づいて、以下形式のJSONを出力してください。
 
 {{
-  "name": "馬名（意味のある造語や自然モチーフ）",
+  "name": "馬名",
   "type": "脚質（逃げ・先行・差し・追込）",
   "stats": {{
-    "Speed": 0-100,
-    "Stamina": 0-100,
-    "Power": 0-100,
-    "Agility": 0-100,
-    "Intelligence": 0-100,
-    "Temperament": 0-100,
-    "Endurance": 0-100,
-    "Charm": 0-100
+    "Speed": 数値,
+    "Stamina": 数値,
+    "Power": 数値,
+    "Agility": 数値,
+    "Intelligence": 数値,
+    "Temperament": 数値,
+    "Endurance": 数値,
+    "Charm": 数値
   }}
 }}
         """
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=[prompt]
-        )
-        raw_text = response.candidates[0].content.parts[0].text
-        print("Gemini JSON:", raw_text, file=sys.stderr)
-        data = json.loads(raw_text)
+        response = model.generate_content(prompt_json)
+        data = json.loads(response.text)
 
         name = data.get("name", "Unknown Horse")
         type_ = data.get("type", "不明")
         stats = data.get("stats", {})
+
+        # --- 星変換 ---
         stats_star = {k: stars(v) for k, v in stats.items()}
 
-        # --- 画像生成 ---
-        image_prompt = f"A fantasy racehorse named {name}, {type_} running style, realistic lighting, elegant composition."
-        img_response = client.models.generate_content(
-            model="gemini-2.5-flash-image",
-            contents=[image_prompt],
-        )
+        # --- イラスト生成 ---
+        image_prompt = f"Generate a fantasy racehorse named {name}, with a {type_} running style, elegant lighting and dynamic pose."
+        image_model = genai.GenerativeModel("gemini-2.5-flash-image")
+        img_response = image_model.generate_content(image_prompt)
+        part = next((p for p in img_response.candidates[0].content.parts if hasattr(p, "inline_data")), None)
+        image_data = part.inline_data.data
 
-        image_data = None
-        for part in img_response.candidates[0].content.parts:
-            if getattr(part, "inline_data", None):
-                image_data = part.inline_data.data
-                break
-
-        image_url = None
-        if image_data:
-            bucket = storage_client.bucket(GCS_BUCKET)
-            filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
-            blob = bucket.blob(filename)
-            blob.upload_from_string(image_data, content_type="image/png")
-            image_url = blob.public_url
-            print(f"Uploaded: {image_url}", file=sys.stderr)
+        # --- GCSアップロード ---
+        bucket = storage_client.bucket(GCS_BUCKET)
+        filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
+        blob = bucket.blob(filename)
+        blob.upload_from_string(image_data, content_type="image/png")
+        image_url = blob.public_url
 
         return render_template_string(RESULT_HTML, name=name, type=type_, stats=stats_star, image_url=image_url)
 
-    except Exception:
+    except Exception as e:
         print(traceback.format_exc(), file=sys.stderr)
-        return "Internal Server Error", 500
+        return f"Internal Error: {e}", 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
