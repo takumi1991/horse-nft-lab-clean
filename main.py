@@ -1,10 +1,9 @@
 import os
-import uuid
 import io
+import uuid
 from flask import Flask, render_template, render_template_string, request
 from google.cloud import storage
-from google import genai
-from google.genai import types
+from google.genai import Client
 from PIL import Image
 from io import BytesIO
 
@@ -14,7 +13,7 @@ app = Flask(__name__)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GCS_BUCKET = os.getenv("GCS_BUCKET")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = Client(api_key=GEMINI_API_KEY)
 storage_client = storage.Client()
 
 # --- HTMLフォーム ---
@@ -49,41 +48,56 @@ def generate():
         traits = request.form.getlist("traits")
         trait_text = ", ".join(traits) if traits else "優しい"
 
-        # --- Geminiで説明文生成（通常のテキストモデル）
+        # --- 説明文生成 ---
+        text_prompt = f"性格タイプ: {trait_text} の理想の馬を説明してください。馬の特徴、性格、外見のイメージを含めてください。"
         text_response = client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=[f"{trait_text}な性格の理想の馬の特徴を説明してください。"]
+            contents=[text_prompt],
         )
-        description = text_response.text
+        description = text_response.text.strip()
+        print(f"[Gemini Text] {description}", file=sys.stderr)
 
-        # --- Geminiで画像生成（Image対応モデル）
-        image_prompt = f"{trait_text}な性格の馬のイラスト, 明るい背景, シンプルで可愛いスタイル"
+        # --- 画像生成 ---
+        image_prompt = f"{trait_text}な性格の馬のイラスト, 明るい背景, 柔らかい光, ファンタジー風, シンプルでかわいい, 高品質"
         image_response = client.models.generate_content(
             model="gemini-2.5-flash-image",
             contents=[image_prompt],
         )
 
-        # --- 画像データ抽出
+        image_bytes = None
         for part in image_response.candidates[0].content.parts:
-            if part.inline_data is not None:
+            if hasattr(part, "inline_data") and part.inline_data.data:
                 image_bytes = part.inline_data.data
                 break
-        else:
-            return "画像生成に失敗しました", 500
 
-        # --- GCSにアップロード
-        bucket = storage_client.bucket(GCS_BUCKET)
+        if not image_bytes:
+            print("❌ 画像生成失敗", file=sys.stderr)
+            return "画像生成に失敗しました。", 500
+
+        # --- GCSにアップロード ---
         blob_name = f"output/horse_{uuid.uuid4().hex[:8]}.png"
+        bucket = storage_client.bucket(GCS_BUCKET)
         blob = bucket.blob(blob_name)
         blob.upload_from_string(image_bytes, content_type="image/png")
         image_url = blob.public_url
-
         print(f"✅ Image uploaded: {image_url}", file=sys.stderr)
 
-        return render_template("result.html", description=description, image_url=image_url)
+        # --- HTML表示 ---
+        RESULT_HTML = f"""
+        <!doctype html>
+        <html lang="ja">
+          <head><meta charset="utf-8"><title>診断結果</title></head>
+          <body>
+            <h1>🐎 あなたの馬</h1>
+            <img src="{image_url}" alt="生成された馬の画像" width="512"><br>
+            <p>{description}</p>
+            <p><a href="/">もう一度診断する</a></p>
+          </body>
+        </html>
+        """
+        return RESULT_HTML
 
     except Exception:
-        print("=== ERROR OCCURRED ===", file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
 
