@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>診断結果 - 馬性格診断</title>
+    <style>
+      body {
+        font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+        background: #f9f9f9;
+        text-align: center;
+        padding: 50px;
+      }
+      img {
+        width: 300px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      }
+      h1 { font-size: 1.8em; }
+      a {
+        display: inline-block;
+        margin-top: 20px;
+        text-decoration: none;
+        color: white;
+        background: #007BFF;
+        padding: 10px 20px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>🐎 あなたの馬</h1>
+    <img src="{{ image_url }}" alt="生成された馬の画像">
+    <p>{{ description }}</p>
+    <a href="/">もう一度診断する</a>
+  </body>
+</html>
