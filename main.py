@@ -1,7 +1,7 @@
 import os
 import json
 import uuid
-from flask import Flask, render_template_string, request
+from flask import Flask, render_template, render_template_string, request
 import google.generativeai as genai
 from google.cloud import storage
 from datetime import datetime
