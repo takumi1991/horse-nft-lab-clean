@@ -38,7 +38,7 @@ HTML_FORM = """
 <meta charset="utf-8">
 <title>AI競走馬メーカー</title>
 <!-- LottieFiles Player -->
-<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+<script src="https://unpkg.com/@lottiefiles/lottie-player@1.6.0/dist/lottie-player.js"></script>
 <style>
   body {
     text-align: center;
