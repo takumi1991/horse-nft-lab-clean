@@ -4,7 +4,7 @@ import uuid
 from flask import Flask, render_template, render_template_string, request
 import google.generativeai as genai
 from google.cloud import storage
-from datetime import datetime, timedelta  # ← timedelta をここで import！
+from datetime import datetime
 from PIL import Image, ImageDraw
 import io
 
@@ -56,29 +56,26 @@ def generate():
         # 画像生成（仮：テキストを画像化）
         img = Image.new("RGB", (1024, 1024), "white")
         draw = ImageDraw.Draw(img)
-        draw.rectangle((0,0,1024,120), fill=(240,240,240))
-        draw.text((20,40), description[:60], fill=(0,0,0))  # 先頭だけでも
+        draw.rectangle((0, 0, 1024, 120), fill=(240, 240, 240))
+        draw.text((20, 40), description[:60], fill=(0, 0, 0))
 
-        # GCS アップロード
+        # ✅ GCS アップロード（public_url使用）
         bucket = storage_client.bucket(GCS_BUCKET)
-        blob = bucket.blob(f"output/horse_{uuid.uuid4().hex[:8]}.png")
+        blob_name = f"output/horse_{uuid.uuid4().hex[:8]}.png"
+        blob = bucket.blob(blob_name)
+
         buf = io.BytesIO()
         img.save(buf, format="PNG")
         blob.upload_from_string(buf.getvalue(), content_type="image/png")
+
+        # ✅ 公開URLを取得
         image_url = blob.public_url
+        print(f"Image uploaded to GCS: {image_url}", file=sys.stderr)
 
-        # ✅ 署名付きURL(V4)
-        signed_url = blob.generate_signed_url(
-            version="v4",
-            expiration=timedelta(days=7),  # 有効期限7日
-            method="GET",
-        )
-
-        # メモリ解放
         img.close()
         del img
 
-        return render_template("result.html", description=description, image_url=signed_url)
+        return render_template("result.html", description=description, image_url=image_url)
 
     except Exception:
         print(traceback.format_exc(), file=sys.stderr)
