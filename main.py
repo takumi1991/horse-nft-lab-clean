@@ -73,7 +73,7 @@ def generate():
         import google.generativeai as genai
         genai.configure(api_key=api_key)
         # ✅ 「models/」を付けず、「v1」ルートを利用
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content("テストです。")
         print(response.text)
 
