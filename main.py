@@ -2,12 +2,12 @@ import os
 import uuid
 import io
 import json
-from flask import Flask, render_template, render_template_string, request
-import google.generativeai as genai  # ←ここを修正！
-from PIL import Image, ImageDraw
-from google.cloud import storage
-from datetime import timedelta
+import re
 import sys, traceback
+from flask import Flask, render_template_string, request
+import google.generativeai as genai
+from PIL import Image
+from google.cloud import storage
 
 app = Flask(__name__)
 
@@ -15,15 +15,14 @@ app = Flask(__name__)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GCS_BUCKET = os.getenv("GCS_BUCKET")
 if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY が設定されていません。")
+    raise RuntimeError("環境変数 GEMINI_API_KEY が設定されていません。")
 if not GCS_BUCKET:
-    raise RuntimeError("GCS_BUCKET が設定されていません。")
+    raise RuntimeError("環境変数 GCS_BUCKET が設定されていません。")
 
-# ✅ 新しい初期化方法
 genai.configure(api_key=GEMINI_API_KEY)
 storage_client = storage.Client()
 
-# --- 星変換 ---
+# --- 星評価変換 ---
 def stars(score):
     try:
         score = int(score)
@@ -83,12 +82,11 @@ def index():
 def generate():
     try:
         traits = request.form.getlist("traits")
-
-        # --- JSON構造の出力 ---
         model = genai.GenerativeModel("gemini-2.5-flash")
 
         prompt_json = f"""
 性格タイプ {traits} に基づいて、以下形式のJSONを出力してください。
+余分な説明文は不要です。JSONのみを返してください。
 
 {{
   "name": "馬名",
@@ -107,34 +105,59 @@ def generate():
         """
 
         response = model.generate_content(prompt_json)
-        data = json.loads(response.text)
+
+        # --- JSON抽出（空・非JSON対策） ---
+        raw_text = ""
+        if hasattr(response, "text") and response.text:
+            raw_text = response.text
+        elif hasattr(response, "candidates") and response.candidates:
+            try:
+                raw_text = response.candidates[0].content.parts[0].text
+            except Exception:
+                pass
+
+        if not raw_text.strip():
+            raise ValueError("Geminiの応答が空です。")
+
+        match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+        if not match:
+            print("⚠️ Gemini出力（非JSON）:", raw_text[:200], file=sys.stderr)
+            raise ValueError("Geminiが有効なJSONを返しませんでした。")
+
+        data = json.loads(match.group(0))
 
         name = data.get("name", "Unknown Horse")
         type_ = data.get("type", "不明")
         stats = data.get("stats", {})
-
-        # --- 星変換 ---
         stats_star = {k: stars(v) for k, v in stats.items()}
 
-        # --- イラスト生成 ---
-        image_prompt = f"Generate a fantasy racehorse named {name}, with a {type_} running style, elegant lighting and dynamic pose."
+        # --- 画像生成 ---
+        image_prompt = f"A fantasy racehorse named {name}, {type_} running style, cinematic lighting, detailed, dynamic pose."
         image_model = genai.GenerativeModel("gemini-2.5-flash-image")
         img_response = image_model.generate_content(image_prompt)
-        part = next((p for p in img_response.candidates[0].content.parts if hasattr(p, "inline_data")), None)
-        image_data = part.inline_data.data
 
-        # --- GCSアップロード ---
-        bucket = storage_client.bucket(GCS_BUCKET)
-        filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
-        blob = bucket.blob(filename)
-        blob.upload_from_string(image_data, content_type="image/png")
-        image_url = blob.public_url
+        image_data = None
+        if hasattr(img_response, "candidates"):
+            for part in img_response.candidates[0].content.parts:
+                if getattr(part, "inline_data", None) and getattr(part.inline_data, "data", None):
+                    image_data = part.inline_data.data
+                    break
+
+        if not image_data:
+            image_url = None
+        else:
+            bucket = storage_client.bucket(GCS_BUCKET)
+            filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
+            blob = bucket.blob(filename)
+            blob.upload_from_string(image_data, content_type="image/png")
+            image_url = blob.public_url
 
         return render_template_string(RESULT_HTML, name=name, type=type_, stats=stats_star, image_url=image_url)
 
-    except Exception as e:
+    except Exception:
         print(traceback.format_exc(), file=sys.stderr)
-        return f"Internal Error: {e}", 500
+        return "Internal Server Error", 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
