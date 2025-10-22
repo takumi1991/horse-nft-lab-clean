@@ -275,6 +275,32 @@ def generate():
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
 
+import requests
+
+MORALIS_API_KEY = os.getenv("MORALIS_API_KEY")
+
+def mint_nft(image_url, name, wallet_address):
+    """
+    Moralis APIを使ってPolygon AmoyにNFTをミント
+    """
+    url = "https://deep-index.moralis.io/api/v2/nft/mint"
+    headers = {
+        "accept": "application/json",
+        "X-API-Key": MORALIS_API_KEY,
+        "content-type": "application/json"
+    }
+    payload = {
+        "chain": "amoy",
+        "to_address": wallet_address,
+        "name": name,
+        "description": f"{name} - AI generated racehorse NFT",
+        "image": image_url
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    print("Mint response:", response.text)
+    return response.json()
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
