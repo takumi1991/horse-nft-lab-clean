@@ -283,37 +283,28 @@ def generate():
 
 import requests
 
-MORALIS_API_KEY = os.getenv("MORALIS_API_KEY")
+THIRDWEB_API_KEY = os.getenv("THIRDWEB_API_KEY")
+PROJECT_WALLET = os.getenv("PROJECT_WALLET")
+CHAIN = os.getenv("CHAIN", "polygon-amoy")
 
-def mint_nft(image_url, name, wallet_address):
+def mint_with_thirdweb(image_url, name, description):
     """
-    Moralis APIを使ってPolygon AmoyにNFTをミント
+    Thirdweb REST API で NFT を Polygon Amoy にミントする
     """
-    url = "https://deep-index.moralis.io/api/v2/nft/mint"
+    url = "https://api.thirdweb.com/v1/nft/mint"
     headers = {
-        "accept": "application/json",
-        "X-API-Key": MORALIS_API_KEY,
-        "content-type": "application/json"
+        "x-api-key": THIRDWEB_API_KEY,
+        "Content-Type": "application/json"
     }
     payload = {
-        "chain": "amoy",
-        "to_address": wallet_address,
-        "name": name,
-        "description": f"{name} - AI generated racehorse NFT",
-        "image": image_url
+        "toAddress": PROJECT_WALLET,
+        "metadata": {
+            "name": name,
+            "description": description,
+            "image": image_url
+        },
+        "chain": CHAIN
     }
-
-    response = requests.post(url, headers=headers, json=payload)
-
-    print("=== Moralis Response Status ===", response.status_code, file=sys.stderr)
-    print("=== Moralis Raw Text ===", response.text, file=sys.stderr)
-
-    # JSONが壊れてる場合に備えてtryブロック
-    try:
-        return response.json()
-    except Exception as e:
-        print("⚠️ JSON decode failed:", e, file=sys.stderr)
-        return {"error": response.text, "status_code": response.status_code}
 
 
 if __name__ == "__main__":
