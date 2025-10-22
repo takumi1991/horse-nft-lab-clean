@@ -304,8 +304,16 @@ def mint_nft(image_url, name, wallet_address):
     }
 
     response = requests.post(url, headers=headers, json=payload)
-    print("Mint response:", response.text)
-    return response.json()
+
+    print("=== Moralis Response Status ===", response.status_code, file=sys.stderr)
+    print("=== Moralis Raw Text ===", response.text, file=sys.stderr)
+
+    # JSONが壊れてる場合に備えてtryブロック
+    try:
+        return response.json()
+    except Exception as e:
+        print("⚠️ JSON decode failed:", e, file=sys.stderr)
+        return {"error": response.text, "status_code": response.status_code}
 
 
 if __name__ == "__main__":
