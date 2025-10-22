@@ -8,6 +8,8 @@ from flask import Flask, render_template_string, request
 import google.generativeai as genai
 from PIL import Image
 from google.cloud import storage
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
