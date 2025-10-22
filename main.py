@@ -269,6 +269,12 @@ def generate():
             blob.upload_from_string(image_data, content_type="image/png")
             image_url = blob.public_url
 
+        # --- NFTミント処理 ---
+        wallet_address = "ご主人様のMetaMaskアドレス"  # 例: 0xA123...F9
+        mint_result = mint_nft(image_url, name, wallet_address)
+
+        print("NFT Mint Result:", mint_result)
+
         return render_template_string(RESULT_HTML, name=name, type=type_, stats=stats_star, image_url=image_url)
 
     except Exception:
