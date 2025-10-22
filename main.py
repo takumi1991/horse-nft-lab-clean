@@ -38,7 +38,7 @@ HTML_FORM = """
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>AI競走馬メーカー</title>
+  <title>NFT馬占い</title>
   <script src="https://unpkg.com/lottie-web/build/player/lottie.min.js"></script>
   <style>
     :root { color-scheme: light dark; }
