@@ -289,7 +289,7 @@ CHAIN = os.getenv("CHAIN", "polygon-amoy")
 
 def mint_with_thirdweb(image_url, name, description):
     """
-    Thirdweb REST API で NFT を Polygon Amoy にミントする
+    Thirdweb REST API で NFT を Polygon Amoy にミントする（デバッグ版）
     """
     url = "https://api.thirdweb.com/v1/nft/mint"
     headers = {
@@ -305,6 +305,26 @@ def mint_with_thirdweb(image_url, name, description):
         },
         "chain": CHAIN
     }
+
+    print("=== Sending request to Thirdweb ===")
+    print(json.dumps(payload, indent=2))
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=20)
+        print("=== Thirdweb Response Status ===", response.status_code)
+        print("=== Thirdweb Raw Text ===")
+        print(response.text)
+
+        # JSONとして読めるなら返す
+        try:
+            return response.json()
+        except Exception:
+            print("⚠️ Response was not JSON format.")
+            return {"error_raw": response.text, "status_code": response.status_code}
+
+    except Exception as e:
+        print("❌ Thirdweb request failed:", e)
+        return {"error": str(e)}
 
 
 if __name__ == "__main__":
