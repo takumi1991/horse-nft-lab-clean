@@ -271,7 +271,7 @@ def generate():
 
         # --- NFTミント処理 ---
         wallet_address = "ご主人様のMetaMaskアドレス"  # 例: 0xA123...F9
-        mint_result = mint_nft(image_url, name, wallet_address)
+        mint_result = mint_with_thirdweb(image_url, name, "AI-generated racehorse NFT")
 
         print("NFT Mint Result:", mint_result)
 
