@@ -14,14 +14,8 @@ app = Flask(__name__)
 
 # --- 環境変数 ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GCS_BUCKET = os.getenv("GCS_BUCKET")
-if not GEMINI_API_KEY:
-    raise RuntimeError("環境変数 GEMINI_API_KEY が設定されていません。")
-if not GCS_BUCKET:
-    raise RuntimeError("環境変数 GCS_BUCKET が設定されていません。")
 
 genai.configure(api_key=GEMINI_API_KEY)
-storage_client = storage.Client()
 
 # --- 星評価変換 ---
 def stars(score):
@@ -262,11 +256,8 @@ def generate():
         if not image_data:
             image_url = None
         else:
-            bucket = storage_client.bucket(GCS_BUCKET)
             filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
-            blob = bucket.blob(filename)
-            blob.upload_from_string(image_data, content_type="image/png")
-            image_url = blob.public_url
+            image_url = None
 
         # --- NFTミント処理 ---
         wallet_address = "ご主人様のMetaMaskアドレス"  # 例: 0xA123...F9
