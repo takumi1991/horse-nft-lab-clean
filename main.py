@@ -7,20 +7,15 @@ import sys, traceback
 from flask import Flask, render_template_string, request
 import google.generativeai as genai
 from PIL import Image
-from google.cloud import storage
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
 # --- 環境変数 ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GCS_BUCKET = os.getenv("GCS_BUCKET")
-if not GEMINI_API_KEY:
-    raise RuntimeError("環境変数 GEMINI_API_KEY が設定されていません。")
-if not GCS_BUCKET:
-    raise RuntimeError("環境変数 GCS_BUCKET が設定されていません。")
 
 genai.configure(api_key=GEMINI_API_KEY)
-storage_client = storage.Client()
 
 # --- 星評価変換 ---
 def stars(score):
@@ -36,7 +31,7 @@ HTML_FORM = """
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>AI競走馬メーカー</title>
+  <title>NFT馬占い</title>
   <script src="https://unpkg.com/lottie-web/build/player/lottie.min.js"></script>
   <style>
     :root { color-scheme: light dark; }
@@ -251,27 +246,78 @@ def generate():
         image_model = genai.GenerativeModel("gemini-2.5-flash-image")
         img_response = image_model.generate_content(image_prompt)
 
-        image_data = None
+        import base64
+        image_url = None
+        
         if hasattr(img_response, "candidates"):
             for part in img_response.candidates[0].content.parts:
                 if getattr(part, "inline_data", None) and getattr(part.inline_data, "data", None):
                     image_data = part.inline_data.data
+                    # Base64変換して直接HTMLで出す
+                    base64_img = base64.b64encode(image_data).decode()
+                    image_url = f"data:image/png;base64,{base64_img}"
                     break
 
-        if not image_data:
+        # 画像生成失敗時は None にする
+        if not image_url:
             image_url = None
-        else:
-            bucket = storage_client.bucket(GCS_BUCKET)
-            filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
-            blob = bucket.blob(filename)
-            blob.upload_from_string(image_data, content_type="image/png")
-            image_url = blob.public_url
+
+        # --- NFTミント処理 ---
+        wallet_address = "ご主人様のMetaMaskアドレス"  # 例: 0xA123...F9
+        mint_result = mint_with_thirdweb(image_url, name, "AI-generated racehorse NFT")
+
+        print("NFT Mint Result:", mint_result)
 
         return render_template_string(RESULT_HTML, name=name, type=type_, stats=stats_star, image_url=image_url)
 
     except Exception:
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
+
+import requests
+
+THIRDWEB_API_KEY = os.getenv("THIRDWEB_API_KEY")
+PROJECT_WALLET = os.getenv("PROJECT_WALLET")
+CHAIN = os.getenv("CHAIN", "polygon-amoy")
+
+def mint_with_thirdweb(image_url, name, description):
+    """
+    Thirdweb REST API で NFT を Polygon Amoy にミントする（デバッグ版）
+    """
+    url = "https://api.thirdweb.com/v1/nft/mint"
+    headers = {
+        "x-api-key": THIRDWEB_API_KEY,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "toAddress": PROJECT_WALLET,
+        "metadata": {
+            "name": name,
+            "description": description,
+            "image": image_url
+        },
+        "chain": CHAIN
+    }
+
+    print("=== Sending request to Thirdweb ===")
+    print(json.dumps(payload, indent=2))
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=20)
+        print("=== Thirdweb Response Status ===", response.status_code)
+        print("=== Thirdweb Raw Text ===")
+        print(response.text)
+
+        # JSONとして読めるなら返す
+        try:
+            return response.json()
+        except Exception:
+            print("⚠️ Response was not JSON format.")
+            return {"error_raw": response.text, "status_code": response.status_code}
+
+    except Exception as e:
+        print("❌ Thirdweb request failed:", e)
+        return {"error": str(e)}
 
 
 if __name__ == "__main__":
