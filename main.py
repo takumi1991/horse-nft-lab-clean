@@ -246,17 +246,20 @@ def generate():
         image_model = genai.GenerativeModel("gemini-2.5-flash-image")
         img_response = image_model.generate_content(image_prompt)
 
-        image_data = None
+        import base64
+        image_url = None
+        
         if hasattr(img_response, "candidates"):
             for part in img_response.candidates[0].content.parts:
                 if getattr(part, "inline_data", None) and getattr(part.inline_data, "data", None):
                     image_data = part.inline_data.data
+                    # Base64変換して直接HTMLで出す
+                    base64_img = base64.b64encode(image_data).decode()
+                    image_url = f"data:image/png;base64,{base64_img}"
                     break
 
-        if not image_data:
-            image_url = None
-        else:
-            filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
+        # 画像生成失敗時は None にする
+        if not image_url:
             image_url = None
 
         # --- NFTミント処理 ---
