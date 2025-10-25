@@ -300,9 +300,12 @@ def generate():
 
         print("NFT Mint Result:", mint_result)
 
+        log_sli("horse_generate", True)
         return render_template_string(RESULT_HTML, name=name, type=type_, stats=stats_star, image_url=image_url)
+    
 
     except Exception:
+        log_sli("horse_generate", False)
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
 
