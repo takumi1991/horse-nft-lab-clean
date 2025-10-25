@@ -286,11 +286,6 @@ def generate():
             print("❌ Image generation failed:", e, file=sys.stderr)
             image_url = None
 
-        # --- NFTミント処理 ---
-        wallet_address = "ご主人様のMetaMaskアドレス"  # 例: 0xA123...F9
-        mint_result = mint_with_thirdweb(image_url, name, "AI-generated racehorse NFT")
-
-        print("NFT Mint Result:", mint_result)
 
         return render_template_string(RESULT_HTML, name=name, type=type_, stats=stats_star, image_url=image_url)
 
@@ -298,51 +293,18 @@ def generate():
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
 
-import requests
 
-THIRDWEB_API_KEY = os.getenv("THIRDWEB_API_KEY")
-PROJECT_WALLET = os.getenv("PROJECT_WALLET")
-CHAIN = os.getenv("CHAIN", "polygon-amoy")
 
-def mint_with_thirdweb(image_url, name, description):
-    """
-    Thirdweb REST API で NFT を Polygon Amoy にミントする（デバッグ版）
-    """
-    url = "https://api.thirdweb.com/v1/nft/mint"
-    headers = {
-        "x-api-key": THIRDWEB_API_KEY,
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "toAddress": PROJECT_WALLET,
-        "metadata": {
-            "name": name,
-            "description": description,
-            "image": image_url
-        },
-        "chain": CHAIN
-    }
+import logging
 
-    print("=== Sending request to Thirdweb ===")
-    print(json.dumps(payload, indent=2))
-
-    try:
-        response = requests.post(url, headers=headers, json=payload, timeout=20)
-        print("=== Thirdweb Response Status ===", response.status_code)
-        print("=== Thirdweb Raw Text ===")
-        print(response.text)
-
-        # JSONとして読めるなら返す
-        try:
-            return response.json()
-        except Exception:
-            print("⚠️ Response was not JSON format.")
-            return {"error_raw": response.text, "status_code": response.status_code}
-
-    except Exception as e:
-        print("❌ Thirdweb request failed:", e)
-        return {"error": str(e)}
-
+def log_sli(event, success=True):
+    logging.info(
+        "SLI_METRIC",
+        extra={
+            "custom_sli_event": event,
+            "success": success,
+        }
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
