@@ -24,6 +24,22 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- GCS client ---
 storage_client = storage.Client()
 
+import logging
+from google.cloud.logging import Client as LoggingClient
+
+# Cloud Logging Handler (structured logs)
+logging_client = LoggingClient()
+logging_client.setup_logging()
+
+def log_sli(event_name, success: bool):
+    logging.info(
+        "SLI_METRIC",
+        extra={
+            "sli_event": event_name,
+            "success": success,
+        }
+    )
+
 # --- 星評価変換 ---
 def stars(score):
     try:
@@ -334,16 +350,7 @@ def mint_with_thirdweb(image_url, name, description):
     except Exception as e:
         print("❌ Thirdweb request failed:", e)
         return {"error": str(e)}
-import logging
 
-def log_sli(event, success=True):
-    logging.info(
-        "SLI_METRIC",
-        extra={
-            "custom_sli_event": event,
-            "success": success,
-        }
-    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
