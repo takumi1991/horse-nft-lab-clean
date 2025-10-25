@@ -242,49 +242,34 @@ def generate():
         stats = data.get("stats", {})
         stats_star = {k: stars(v) for k, v in stats.items()}
 
-        # ✅ 修正：ここで image_prompt を定義する
-        image_prompt = (
-            f"A realistic racehorse named {name}, running alone on a Japanese dirt race track, "
-            f"{type_} running style, no humans, no jockeys, no text, no logo, cinematic light, "
-            f"detailed, dynamic motion blur, photo style."
-        )
-
-        # --- 画像生成（デバッグ付き） ---
-        try:
-            img_model = genai.GenerativeModel("gemini-2.5-flash-image")
-            img_response = img_model.generate_content(image_prompt)
-
-            print("=== Gemini Image Response Raw ===", img_response, file=sys.stderr)
-
-            image_data = None
-
-            # 最新仕様(a) candidates.parts 内の inline_data
+        # --- 画像生成（最大3回リトライ）---
+        image_prompt = f"A realistic racehorse named {name}, running alone on a professional Japanese race track, {type_} running style, no humans, no jockeys, no text, no logo, realistic lighting, motion blur, dirt flying, detailed photo style."
+        image_model = genai.GenerativeModel("gemini-2.5-flash-image")
+        
+        image_data = None
+        for attempt in range(3):
             try:
-                for part in img_response.candidates[0].content.parts:
-                    if hasattr(part, "inline_data") and hasattr(part.inline_data, "data"):
-                        image_data = part.inline_data.data
-                        break
-            except:
-                pass
+                img_response = image_model.generate_content(image_prompt)
+                if hasattr(img_response, "candidates"):
+                    for part in img_response.candidates[0].content.parts:
+                        if getattr(part, "inline_data", None) and getattr(part.inline_data, "data", None):
+                            image_data = part.inline_data.data
+                            break
+                if image_data:
+                    break
+            except Exception as e:
+                print(f"⚠️ Image retry {attempt+1}/3 failed: {e}", file=sys.stderr)
 
-            # 最新仕様(b) image_bytes の場合
-            try:
-                if hasattr(img_response, "image") and hasattr(img_response.image, "image_bytes"):
-                    image_data = img_response.image.image_bytes
-            except:
-                pass
-
-            if not image_data:
-                raise ValueError("Gemini did not return image bytes")
-
-            # ✅ Base64 URLとして埋め込む
-            import base64
-            encoded = base64.b64encode(image_data).decode()
-            image_url = f"data:image/png;base64,{encoded}"
-
-        except Exception as e:
-            print("❌ Image generation failed:", e, file=sys.stderr)
-            image_url = None
+        # 失敗時は代替画像に切り替え
+        if not image_data:
+            print("❌ Image generation failed after retries", file=sys.stderr)
+            image_url = "/static/fallback_horse.png"  # 任意の代替画像
+        else:
+            bucket = storage_client.bucket(GCS_BUCKET)
+            filename = f"output/horse_{uuid.uuid4().hex[:6]}.png"
+            blob = bucket.blob(filename)
+            blob.upload_from_string(image_data, content_type="image/png")
+            image_url = blob.public_url
 
         # --- NFTミント処理 ---
         wallet_address = "ご主人様のMetaMaskアドレス"  # 例: 0xA123...F9
