@@ -236,10 +236,18 @@ def generate():
 
         data = json.loads(match.group(0))
 
+        # --- JSON解析後ここで name/type_ が確定 ---
         name = data.get("name", "Unknown Horse")
         type_ = data.get("type", "不明")
         stats = data.get("stats", {})
         stats_star = {k: stars(v) for k, v in stats.items()}
+        
+        # ✅ 修正：ここで image_prompt を定義する
+        image_prompt = (
+            f"A realistic racehorse named {name}, running alone on a Japanese dirt race track, "
+            f"{type_} running style, no humans, no jockeys, no text, no logo, cinematic light, "
+            f"detailed, dynamic motion blur, photo style."
+        )
 
         # --- 画像生成（デバッグ付き） ---
         try:
