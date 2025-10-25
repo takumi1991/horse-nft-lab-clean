@@ -241,25 +241,41 @@ def generate():
         stats = data.get("stats", {})
         stats_star = {k: stars(v) for k, v in stats.items()}
 
-        # --- 画像生成 ---
-        image_prompt = f"A realistic racehorse named {name}, running alone on a professional Japanese race track, {type_} running style, no humans, no jockeys, no text, no logo, realistic lighting, motion blur, dirt flying, detailed photo style."
-        image_model = genai.GenerativeModel("gemini-2.5-flash-image")
-        img_response = image_model.generate_content(image_prompt)
-
-        import base64
-        image_url = None
+        # --- 画像生成（デバッグ付き） ---
+        try:
+            img_model = genai.GenerativeModel("gemini-2.5-flash-image")
+            img_response = img_model.generate_content(image_prompt)
         
-        if hasattr(img_response, "candidates"):
-            for part in img_response.candidates[0].content.parts:
-                if getattr(part, "inline_data", None) and getattr(part.inline_data, "data", None):
-                    image_data = part.inline_data.data
-                    # Base64変換して直接HTMLで出す
-                    base64_img = base64.b64encode(image_data).decode()
-                    image_url = f"data:image/png;base64,{base64_img}"
-                    break
-
-        # 画像生成失敗時は None にする
-        if not image_url:
+            print("=== Gemini Image Response Raw ===", img_response, file=sys.stderr)
+        
+            image_data = None
+        
+            # 最新仕様(a) candidates.parts 内の inline_data
+            try:
+                for part in img_response.candidates[0].content.parts:
+                    if hasattr(part, "inline_data") and hasattr(part.inline_data, "data"):
+                        image_data = part.inline_data.data
+                        break
+            except:
+                pass
+        
+            # 最新仕様(b) image_bytes の場合
+            try:
+                if hasattr(img_response, "image") and hasattr(img_response.image, "image_bytes"):
+                    image_data = img_response.image.image_bytes
+            except:
+                pass
+        
+            if not image_data:
+                raise ValueError("Gemini did not return image bytes")
+        
+            # ✅ Base64 URLとして埋め込む
+            import base64
+            encoded = base64.b64encode(image_data).decode()
+            image_url = f"data:image/png;base64,{encoded}"
+        
+        except Exception as e:
+            print("❌ Image generation failed:", e, file=sys.stderr)
             image_url = None
 
         # --- NFTミント処理 ---
