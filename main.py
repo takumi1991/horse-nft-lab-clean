@@ -30,6 +30,11 @@ from google.cloud.logging import Client as LoggingClient
 # Cloud Logging Handler (structured logs)
 logging_client = LoggingClient()
 logging_client.setup_logging()
+# ✅ ここにテストログを追加
+logging.info("SLI_METRIC", extra={"sli_event": "boot", "success": True})
+
+# ✅ ここにテストログを追加
+logging.info("SLI_METRIC", extra={"sli_event": "boot", "success": True})
 
 def log_sli(event_name, success: bool):
     logging.info(
