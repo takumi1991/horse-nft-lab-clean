@@ -6,6 +6,7 @@ import re
 import sys, traceback
 from flask import Flask, render_template_string, request
 import google.generativeai as genai
+from google.cloud import storage
 from PIL import Image
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,6 +17,9 @@ app = Flask(__name__)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 genai.configure(api_key=GEMINI_API_KEY)
+
+# --- GCS client ---
+storage_client = storage.Client()
 
 # --- 星評価変換 ---
 def stars(score):
