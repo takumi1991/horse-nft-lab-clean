@@ -14,6 +14,9 @@ load_dotenv()
 app = Flask(__name__)
 
 # --- 環境変数 ---
+GCS_BUCKET = os.getenv("GCS_BUCKET")
+if not GCS_BUCKET:
+    raise RuntimeError("環境変数 GCS_BUCKET が設定されていません。")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 genai.configure(api_key=GEMINI_API_KEY)
