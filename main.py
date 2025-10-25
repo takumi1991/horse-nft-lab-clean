@@ -31,7 +31,7 @@ HTML_FORM = """
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>馬占い</title>
+  <title>NFT馬占い</title>
   <script src="https://unpkg.com/lottie-web/build/player/lottie.min.js"></script>
   <style>
     :root { color-scheme: light dark; }
@@ -53,7 +53,7 @@ HTML_FORM = """
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>🐴 馬占い</h1>
+      <h1>🐴 AI競走馬メーカー</h1>
       <p>あなたの性格タイプを選んでください：</p>
       <form id="quiz" action="/generate" method="post">
         <div class="traits">
@@ -241,7 +241,7 @@ def generate():
         type_ = data.get("type", "不明")
         stats = data.get("stats", {})
         stats_star = {k: stars(v) for k, v in stats.items()}
-        
+
         # ✅ 修正：ここで image_prompt を定義する
         image_prompt = (
             f"A realistic racehorse named {name}, running alone on a Japanese dirt race track, "
@@ -253,11 +253,11 @@ def generate():
         try:
             img_model = genai.GenerativeModel("gemini-2.5-flash-image")
             img_response = img_model.generate_content(image_prompt)
-        
+
             print("=== Gemini Image Response Raw ===", img_response, file=sys.stderr)
-        
+
             image_data = None
-        
+
             # 最新仕様(a) candidates.parts 内の inline_data
             try:
                 for part in img_response.candidates[0].content.parts:
@@ -266,26 +266,31 @@ def generate():
                         break
             except:
                 pass
-        
+
             # 最新仕様(b) image_bytes の場合
             try:
                 if hasattr(img_response, "image") and hasattr(img_response.image, "image_bytes"):
                     image_data = img_response.image.image_bytes
             except:
                 pass
-        
+
             if not image_data:
                 raise ValueError("Gemini did not return image bytes")
-        
+
             # ✅ Base64 URLとして埋め込む
             import base64
             encoded = base64.b64encode(image_data).decode()
             image_url = f"data:image/png;base64,{encoded}"
-        
+
         except Exception as e:
             print("❌ Image generation failed:", e, file=sys.stderr)
             image_url = None
 
+        # --- NFTミント処理 ---
+        wallet_address = "ご主人様のMetaMaskアドレス"  # 例: 0xA123...F9
+        mint_result = mint_with_thirdweb(image_url, name, "AI-generated racehorse NFT")
+
+        print("NFT Mint Result:", mint_result)
 
         return render_template_string(RESULT_HTML, name=name, type=type_, stats=stats_star, image_url=image_url)
 
@@ -293,8 +298,50 @@ def generate():
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
 
+import requests
 
+THIRDWEB_API_KEY = os.getenv("THIRDWEB_API_KEY")
+PROJECT_WALLET = os.getenv("PROJECT_WALLET")
+CHAIN = os.getenv("CHAIN", "polygon-amoy")
 
+def mint_with_thirdweb(image_url, name, description):
+    """
+    Thirdweb REST API で NFT を Polygon Amoy にミントする（デバッグ版）
+    """
+    url = "https://api.thirdweb.com/v1/nft/mint"
+    headers = {
+        "x-api-key": THIRDWEB_API_KEY,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "toAddress": PROJECT_WALLET,
+        "metadata": {
+            "name": name,
+            "description": description,
+            "image": image_url
+        },
+        "chain": CHAIN
+    }
+
+    print("=== Sending request to Thirdweb ===")
+    print(json.dumps(payload, indent=2))
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=20)
+        print("=== Thirdweb Response Status ===", response.status_code)
+        print("=== Thirdweb Raw Text ===")
+        print(response.text)
+
+        # JSONとして読めるなら返す
+        try:
+            return response.json()
+        except Exception:
+            print("⚠️ Response was not JSON format.")
+            return {"error_raw": response.text, "status_code": response.status_code}
+
+    except Exception as e:
+        print("❌ Thirdweb request failed:", e)
+        return {"error": str(e)}
 import logging
 
 def log_sli(event, success=True):
@@ -304,16 +351,6 @@ def log_sli(event, success=True):
             "custom_sli_event": event,
             "success": success,
         }
-    )
-    
-    import time
-    start = time.time()
-    # 画像生成処理…
-    duration = time.time() - start
-    
-    logging.info(
-        "SLI_LATENCY",
-        extra={"image_gen_latency_sec": duration}
     )
 
 if __name__ == "__main__":
