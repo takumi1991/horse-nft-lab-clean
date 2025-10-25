@@ -13,5 +13,4 @@ RUN pip install --no-cache-dir --upgrade pip \
 COPY . .
 
 EXPOSE 8080
-
 CMD ["gunicorn", "--workers=1", "--threads=8", "--timeout=0", "main:app"]
