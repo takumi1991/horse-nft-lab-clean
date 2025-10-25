@@ -305,6 +305,16 @@ def log_sli(event, success=True):
             "success": success,
         }
     )
+    
+    import time
+    start = time.time()
+    # 画像生成処理…
+    duration = time.time() - start
+    
+    logging.info(
+        "SLI_LATENCY",
+        extra={"image_gen_latency_sec": duration}
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
