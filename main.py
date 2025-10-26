@@ -24,12 +24,20 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- GCS client ---
 storage_client = storage.Client()
 
+import logging
 from google.cloud import logging_v2
+from google.cloud.logging_v2.handlers import StructuredLogHandler
 
-# Cloud Logging クライアント
+# Cloud Run向け確実に動くログ初期設定
 logging_client = logging_v2.Client()
 
-# カスタムログ名: logs/sli
+# stdout側のログもStackdriver形式に
+handler = StructuredLogHandler()
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+root.addHandler(handler)
+
+# カスタムログストリーム
 sli_logger = logging_client.logger("sli")
 
 def log_sli(event_name: str, success: bool):
