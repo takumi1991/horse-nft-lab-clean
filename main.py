@@ -24,32 +24,21 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- GCS client ---
 storage_client = storage.Client()
 
-import logging
-from google.cloud.logging_v2 import Client as CloudLoggingClient
-from google.cloud.logging_v2.handlers import CloudLoggingHandler
+from google.cloud import logging_v2
 
-logging_client = CloudLoggingClient()
+# Cloud Logging クライアント
+logging_client = logging_v2.Client()
 
-# Cloud Logging Handler を Flask の logger に付与
-handler = CloudLoggingHandler(logging_client)
-handler.setLevel(logging.INFO)
+# カスタムログ名: logs/sli
+sli_logger = logging_client.logger("sli")
 
-flask_logger = logging.getLogger("gunicorn.error")  # Cloud Runで確実に拾われる
-flask_logger.addHandler(handler)
-flask_logger.setLevel(logging.INFO)
-
-# SLI専用ロガー
-sli_logger = logging.getLogger("sli")
-sli_logger.addHandler(handler)
-sli_logger.setLevel(logging.INFO)
-
-def log_sli(event_name, success: bool):
-    sli_logger.info(
-        "SLI_METRIC",
-        extra={
+def log_sli(event_name: str, success: bool):
+    sli_logger.log_struct(
+        {
             "sli_event": event_name,
-            "success": success
-        }
+            "success": success,
+        },
+        severity="INFO" if success else "ERROR"
     )
 
 # --- 星評価変換 ---
@@ -368,13 +357,7 @@ def mint_with_thirdweb(image_url, name, description):
 
 @app.route("/debug-log")
 def debug_log():
-    sli_logger.info(
-        "SLI_METRIC",
-        extra={
-            "sli_event": "debug_probe",
-            "success": True
-        }
-    )
+    log_sli("debug_probe", True)
     print("[DEBUG] wrote structured log to logs/sli")
     return "ok", 200
 
