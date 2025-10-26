@@ -38,6 +38,9 @@ root_logger.setLevel(logging.INFO)
 
 # ✅ ここに追加する！！！！！
 sli_logger = logging_client.logger("sli")
+handler = CloudLoggingHandler(logging_client)
+sli_logger.addHandler(handler)
+sli_logger.setLevel(logging.INFO)
 
 def log_sli(event_name, success: bool):
     sli_logger.log_struct(
