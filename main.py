@@ -25,9 +25,11 @@ genai.configure(api_key=GEMINI_API_KEY)
 storage_client = storage.Client()
 
 import logging
-from google.cloud.logging_v2.handlers import CloudLoggingHandler
+from google.cloud.logging import Client as CloudLoggingClient
+from google.cloud.logging.handlers import CloudLoggingHandler
 
-logging_client = CloudLoggingClient(project=os.environ.get("GOOGLE_CLOUD_PROJECT"))
+logging_client = CloudLoggingClient()
+
 handler = CloudLoggingHandler(logging_client)
 
 sli_logger = logging.getLogger("sli")
