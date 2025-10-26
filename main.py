@@ -37,12 +37,9 @@ root_logger.setLevel(logging.INFO)
 # ✅ STRUCTURED LOGGING 修正ここまで
 
 def log_sli(event_name, success: bool):
-    logging.info(
-        "SLI_METRIC",
-        extra={
-            "sli_event": event_name,
-            "success": success,
-        }
+    sli_logger.log_struct(
+        {"sli_event": event, "success": success, "message": "SLI_METRIC"},
+        severity="INFO"
     )
 
 # --- 星評価変換 ---
