@@ -24,23 +24,14 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- GCS client ---
 storage_client = storage.Client()
 
+import json
 import logging
-from google.cloud import logging_v2
-
-logging_client = logging_v2.Client()
-logging_client.setup_logging()  # Cloud Run 標準ログ変換を有効化
-
-sli_logger = logging.getLogger("sli")
-sli_logger.setLevel(logging.INFO)
 
 def log_sli(event_name: str, success: bool):
-    sli_logger.info(
-        "",  # メッセージは空でOK
-        extra={
-            "sli_event": event_name,
-            "success": success,
-        }
-    )
+    logging.info(json.dumps({
+        "sli_event": event_name,
+        "success": success,
+    }))
 
 # --- 星評価変換 ---
 def stars(score):
