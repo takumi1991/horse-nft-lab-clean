@@ -31,12 +31,11 @@ from google.cloud.logging.handlers import CloudLoggingHandler
 
 logging_client = CloudLoggingClient()
 handler = CloudLoggingHandler(logging_client)
+
 root_logger = logging.getLogger()
 root_logger.handlers = [handler]
 root_logger.setLevel(logging.INFO)
-# ✅ STRUCTURED LOGGING 修正ここまで
 
-# ✅ ここに追加する！！！！！
 sli_logger = logging_client.logger("sli")
 
 def log_sli(event_name, success: bool):
