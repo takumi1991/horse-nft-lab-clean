@@ -25,26 +25,24 @@ genai.configure(api_key=GEMINI_API_KEY)
 storage_client = storage.Client()
 
 import logging
-from google.cloud.logging_v2 import Client as CloudLoggingClient
-from google.cloud.logging.handlers import CloudLoggingHandler
+from google.cloud.logging_v2.handlers import CloudLoggingHandler
 
-logging_client = CloudLoggingClient()
+logging_client = CloudLoggingClient(project=os.environ.get("GOOGLE_CLOUD_PROJECT"))
+handler = CloudLoggingHandler(logging_client)
 
-# ❌ root_logger は使わない！
-# root_logger = logging.getLogger()
-# root_logger.handlers = [handler]
-
-# ✅ Cloud Logging ハンドラは明示的にだけ使う
-sli_logger = logging_client.logger("sli")
+sli_logger = logging.getLogger("sli")
+sli_logger.setLevel(logging.INFO)
+sli_logger.addHandler(handler)
 
 def log_sli(event_name, success: bool):
     sli_logger.log_struct(
         {
-            "message": "SLI_METRIC",
-            "sli_event": event_name,
-            "success": success
+            "sli": {
+                "event": event_name,
+                "success": success,
+            }
         },
-        severity="INFO" if success else "ERROR"
+        severity="INFO" if success else "ERROR",
     )
 
 # --- 星評価変換 ---
