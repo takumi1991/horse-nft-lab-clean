@@ -24,18 +24,17 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- GCS client ---
 storage_client = storage.Client()
 
-# ✅ STRUCTURED LOGGING 修正ここから
 import logging
 from google.cloud.logging_v2 import Client as CloudLoggingClient
 from google.cloud.logging.handlers import CloudLoggingHandler
 
 logging_client = CloudLoggingClient()
-handler = CloudLoggingHandler(logging_client)
 
-root_logger = logging.getLogger()
-root_logger.handlers = [handler]
-root_logger.setLevel(logging.INFO)
+# ❌ root_logger は使わない！
+# root_logger = logging.getLogger()
+# root_logger.handlers = [handler]
 
+# ✅ Cloud Logging ハンドラは明示的にだけ使う
 sli_logger = logging_client.logger("sli")
 
 def log_sli(event_name, success: bool):
