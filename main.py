@@ -28,18 +28,18 @@ import logging
 from google.cloud import logging_v2
 
 logging_client = logging_v2.Client()
-logging_client.setup_logging()
+logging_client.setup_logging()  # Cloud Run 標準ログ変換を有効化
 
 sli_logger = logging.getLogger("sli")
 sli_logger.setLevel(logging.INFO)
 
 def log_sli(event_name: str, success: bool):
     sli_logger.info(
-        "SLI Event",
+        "",  # メッセージは空でOK
         extra={
             "sli_event": event_name,
             "success": success,
-        },
+        }
     )
 
 # --- 星評価変換 ---
