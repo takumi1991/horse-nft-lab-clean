@@ -27,20 +27,20 @@ storage_client = storage.Client()
 import logging
 from google.cloud import logging_v2
 
-# Cloud Run向け確実に動くログ初期設定
 logging_client = logging_v2.Client()
-logging_client.setup_logging()  # ✅ これだけでOK
+logging_client.setup_logging()
 
-# カスタムログストリーム
-sli_logger = logging_client.logger("sli")
+# Cloud Run の structured logger
+sli_logger = logging.getLogger("sli")
+sli_logger.setLevel(logging.INFO)
 
 def log_sli(event_name: str, success: bool):
-    sli_logger.log_struct(
-        {
+    sli_logger.info(
+        "",
+        extra={
             "sli_event": event_name,
             "success": success,
         },
-        severity="INFO" if success else "ERROR"
     )
 
 # --- 星評価変換 ---
