@@ -36,10 +36,17 @@ root_logger.handlers = [handler]
 root_logger.setLevel(logging.INFO)
 # ✅ STRUCTURED LOGGING 修正ここまで
 
+# ✅ ここに追加する！！！！！
+sli_logger = logging_client.logger("sli")
+
 def log_sli(event_name, success: bool):
     sli_logger.log_struct(
-        {"sli_event": event, "success": success, "message": "SLI_METRIC"},
-        severity="INFO"
+        {
+            "message": "SLI_METRIC",
+            "sli_event": event_name,
+            "success": success
+        },
+        severity="INFO" if success else "ERROR"
     )
 
 # --- 星評価変換 ---
