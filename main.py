@@ -26,16 +26,10 @@ storage_client = storage.Client()
 
 import logging
 from google.cloud import logging_v2
-from google.cloud.logging_v2.handlers import StructuredLogHandler
 
 # Cloud Run向け確実に動くログ初期設定
 logging_client = logging_v2.Client()
-
-# stdout側のログもStackdriver形式に
-handler = StructuredLogHandler()
-root = logging.getLogger()
-root.setLevel(logging.INFO)
-root.addHandler(handler)
+logging_client.setup_logging()  # ✅ これだけでOK
 
 # カスタムログストリーム
 sli_logger = logging_client.logger("sli")
