@@ -25,26 +25,31 @@ genai.configure(api_key=GEMINI_API_KEY)
 storage_client = storage.Client()
 
 import logging
-from google.cloud.logging import Client as CloudLoggingClient
-from google.cloud.logging.handlers import CloudLoggingHandler
+from google.cloud.logging_v2 import Client as CloudLoggingClient
+from google.cloud.logging_v2.handlers import CloudLoggingHandler
 
 logging_client = CloudLoggingClient()
 
+# Cloud Logging Handler を Flask の logger に付与
 handler = CloudLoggingHandler(logging_client)
+handler.setLevel(logging.INFO)
 
+flask_logger = logging.getLogger("gunicorn.error")  # Cloud Runで確実に拾われる
+flask_logger.addHandler(handler)
+flask_logger.setLevel(logging.INFO)
+
+# SLI専用ロガー
 sli_logger = logging.getLogger("sli")
-sli_logger.setLevel(logging.INFO)
 sli_logger.addHandler(handler)
+sli_logger.setLevel(logging.INFO)
 
 def log_sli(event_name, success: bool):
-    sli_logger.log_struct(
-        {
-            "sli": {
-                "event": event_name,
-                "success": success,
-            }
-        },
-        severity="INFO" if success else "ERROR",
+    sli_logger.info(
+        "SLI_METRIC",
+        extra={
+            "sli_event": event_name,
+            "success": success
+        }
     )
 
 # --- 星評価変換 ---
