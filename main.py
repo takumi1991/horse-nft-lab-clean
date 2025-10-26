@@ -356,11 +356,10 @@ def mint_with_thirdweb(image_url, name, description):
         print("❌ Thirdweb request failed:", e)
         return {"error": str(e)}
 
-@app.route("/debug-log")
-def debug_log():
-    log_sli("debug_probe", True)
-    print("[DEBUG] wrote structured log to logs/sli")
-    return "ok", 200
+@app.route("/debug-sli")
+def debug_sli():
+    log_sli("horse_generate", True)
+    return "SLI logged", 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
