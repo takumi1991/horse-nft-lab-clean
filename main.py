@@ -30,13 +30,12 @@ from google.cloud import logging_v2
 logging_client = logging_v2.Client()
 logging_client.setup_logging()
 
-# Cloud Run の structured logger
 sli_logger = logging.getLogger("sli")
 sli_logger.setLevel(logging.INFO)
 
 def log_sli(event_name: str, success: bool):
     sli_logger.info(
-        "",
+        "SLI Event",
         extra={
             "sli_event": event_name,
             "success": success,
