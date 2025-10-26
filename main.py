@@ -368,13 +368,14 @@ def mint_with_thirdweb(image_url, name, description):
 
 @app.route("/debug-log")
 def debug_log():
-    # 明示的に構造化ログを1件
-    sli_logger.log_struct(
-        {"message": "SLI_METRIC", "sli_event": "debug_probe", "success": True},
-        severity="INFO",
+    sli_logger.info(
+        "SLI_METRIC",
+        extra={
+            "sli_event": "debug_probe",
+            "success": True
+        }
     )
-    # 念のため、コンソールにも痕跡
-    print("[DEBUG] wrote struct log to logs/sli")
+    print("[DEBUG] wrote structured log to logs/sli")
     return "ok", 200
 
 if __name__ == "__main__":
