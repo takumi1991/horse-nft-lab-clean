@@ -361,6 +361,16 @@ def mint_with_thirdweb(image_url, name, description):
         print("❌ Thirdweb request failed:", e)
         return {"error": str(e)}
 
+@app.route("/debug-log")
+def debug_log():
+    # 明示的に構造化ログを1件
+    sli_logger.log_struct(
+        {"message": "SLI_METRIC", "sli_event": "debug_probe", "success": True},
+        severity="INFO",
+    )
+    # 念のため、コンソールにも痕跡
+    print("[DEBUG] wrote struct log to logs/sli")
+    return "ok", 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
