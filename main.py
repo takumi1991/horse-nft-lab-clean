@@ -226,6 +226,7 @@ def index():
 def generate():
     try:
         traits = request.form.getlist("traits")
+        # モデルを明示的に指定（gemini-2.5-flashを使用）
         model = genai.GenerativeModel("gemini-2.5-flash")
 
         prompt_json = f"""
