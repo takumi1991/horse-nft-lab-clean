@@ -24,27 +24,26 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- GCS client ---
 storage_client = storage.Client()
 
-import logging
-from google.cloud import logging_v2
-from google.cloud.logging_v2.handlers import StructuredLogHandler
+from google.cloud import logging
+import json
+from flask import request
 
-client = logging_v2.Client()
-handler = StructuredLogHandler()
-root = logging.getLogger()
-root.setLevel(logging.INFO)
-root.handlers = []
-root.addHandler(handler)
+client = logging.Client()
+logger = client.logger("sli")
+
+PROJECT = "horse-nft-lab-clean"
 
 def log_sli(event_name: str, success: bool):
-    logging.log(
-        logging.INFO if success else logging.ERROR,
-        "SLI event",
-        extra={
-            "sli_event": event_name,
-            "success": success,
-            "component": "sli"
-        }
-    )
+    fields = {"sli_event": event_name, "success": success, "component": "sli"}
+
+    # リクエストトレースを手動で付与（公式必須）
+    trace_header = request.headers.get("X-Cloud-Trace-Context")
+    if trace_header:
+        trace = trace_header.split("/")
+        fields["logging.googleapis.com/trace"] = \
+            f"projects/{PROJECT}/traces/{trace[0]}"
+
+    logger.log_struct(fields, severity="INFO")
 
 # --- 星評価変換 ---
 def stars(score):
