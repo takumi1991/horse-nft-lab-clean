@@ -28,7 +28,8 @@ import json
 import logging
 
 def log_sli(event_name: str, success: bool):
-    logging.info(json.dumps({
+    print(json.dumps({
+        "severity": "INFO" if success else "ERROR",
         "sli_event": event_name,
         "success": success,
     }))
