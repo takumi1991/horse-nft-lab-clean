@@ -32,11 +32,12 @@ client = cloud_logging.Client()
 client.setup_logging()
 
 def log_sli(event_name: str, success: bool):
-    logging.log(
-        logging.INFO if success else logging.ERROR,
-        "",
+    logging.info(
+        "SLI event",
         extra={
             "json_fields": {
+                "message": "horse_sli",
+                "component": "sli",
                 "sli_event": event_name,
                 "success": success,
             }
