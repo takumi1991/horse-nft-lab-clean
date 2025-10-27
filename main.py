@@ -24,6 +24,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- GCS client ---
 storage_client = storage.Client()
 
+PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "horse-nft-lab-clean")
 import json
 import sys
 
