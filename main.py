@@ -26,13 +26,22 @@ storage_client = storage.Client()
 
 import json
 import logging
+from google.cloud import logging as cloud_logging
+
+client = cloud_logging.Client()
+client.setup_logging()
 
 def log_sli(event_name: str, success: bool):
-    print(json.dumps({
-        "severity": "INFO" if success else "ERROR",
-        "sli_event": event_name,
-        "success": success,
-    }))
+    logging.log(
+        logging.INFO if success else logging.ERROR,
+        "",
+        extra={
+            "json_fields": {
+                "sli_event": event_name,
+                "success": success,
+            }
+        },
+    )
 
 # --- 星評価変換 ---
 def stars(score):
