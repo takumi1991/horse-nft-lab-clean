@@ -26,16 +26,18 @@ storage_client = storage.Client()
 
 import logging
 from google.cloud import logging_v2
+from google.cloud.logging_v2.handlers import StructuredLogHandler
 
 client = logging_v2.Client()
-handler = logging_v2.handlers.StructuredLogHandler()
+handler = StructuredLogHandler()
 root = logging.getLogger()
 root.setLevel(logging.INFO)
-root.handlers = []  # 他のハンドラ除去
+root.handlers = []
 root.addHandler(handler)
 
 def log_sli(event_name: str, success: bool):
-    logging.info(
+    logging.log(
+        logging.INFO if success else logging.ERROR,
         "SLI event",
         extra={
             "sli_event": event_name,
