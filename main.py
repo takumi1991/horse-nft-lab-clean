@@ -24,21 +24,25 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- GCS client ---
 storage_client = storage.Client()
 
-import json
 import logging
-from google.cloud import logging as cloud_logging
+from google.cloud import logging_v2
 
-client = cloud_logging.Client()
-client.setup_logging()
+client = logging_v2.Client()
+handler = logging_v2.handlers.StructuredLogHandler()
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+root.handlers = []  # 他のハンドラ除去
+root.addHandler(handler)
 
 def log_sli(event_name: str, success: bool):
-    print(json.dumps({
-        # "message": "SLI event", ← 削除 ← これが原因！
-        "severity": "INFO" if success else "ERROR",
-        "sli_event": event_name,
-        "success": success,
-        "component": "sli"
-    }), flush=True)
+    logging.info(
+        "SLI event",
+        extra={
+            "sli_event": event_name,
+            "success": success,
+            "component": "sli"
+        }
+    )
 
 # --- 星評価変換 ---
 def stars(score):
