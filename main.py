@@ -88,11 +88,16 @@ HTML_FORM = """
     </div>
   </div>
 
-  <script>
-    let lottieAnim = null;
-    const lottieContainer = document.getElementById('lottie');
-    function ensureLottie() {
-      if (lottieAnim) return lottieAnim;
+<script>
+  let lottieAnim = null;
+  const lottieContainer = document.getElementById('lottie');
+  const loading = document.getElementById('loading');
+  const submitBtn = document.getElementById('submitBtn');
+  const form = document.getElementById('quiz');
+
+  // ✅ 先読みしておく
+  function preloadLottie() {
+    return new Promise(resolve => {
       lottieAnim = lottie.loadAnimation({
         container: lottieContainer,
         renderer: 'svg',
@@ -100,24 +105,27 @@ HTML_FORM = """
         autoplay: false,
         path: '/static/racehorse.json'
       });
-      return lottieAnim;
-    }
-
-    const form = document.getElementById('quiz');
-    const loading = document.getElementById('loading');
-    const submitBtn = document.getElementById('submitBtn');
-
-    form.addEventListener('submit', () => {
-      submitBtn.disabled = true;
-      loading.style.display = 'flex';
-      loading.style.background = 'rgba(255, 255, 255, 0.98)';
-      ensureLottie().play();
+      lottieAnim.addEventListener('DOMLoaded', () => {
+        console.log('Lottie preloaded');
+        resolve();
+      });
     });
+  }
 
-    window.addEventListener('load', ensureLottie, { once: true });
-    console.log("Lottie object:", lottie);
-    console.log("Container:", lottieContainer);
-  </script>
+  // ✅ 診断開始イベント
+  form.addEventListener('submit', async () => {
+    submitBtn.disabled = true;
+    loading.style.display = 'flex';
+    loading.style.opacity = 0;
+    await preloadLottie();     // ← 完全ロードを待つ
+    loading.style.transition = 'opacity 0.3s';
+    loading.style.opacity = 1; // ← フェードイン
+    lottieAnim.play();
+  });
+
+  // ✅ ページ読み込み時に先読みだけしておく
+  window.addEventListener('load', preloadLottie, { once: true });
+</script>
 
   <style>
     #loading {
@@ -128,6 +136,7 @@ HTML_FORM = """
       align-items: center;
       justify-content: center;
       z-index: 9999;
+      transition: opacity 0.3s ease; /* ← フェード用 */
     }
     #loading .inner {
       display: grid;
@@ -136,8 +145,8 @@ HTML_FORM = """
       color: #111;
     }
     #lottie {
-      width: 200px;
-      height: 200px;
+      width: 240px;
+      height: 240px;
     }
   </style>
 </body>
