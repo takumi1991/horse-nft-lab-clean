@@ -1,5 +1,12 @@
+provider "google" {
+  project     = var.project_id != "" ? var.project_id : var.GOOGLE_PROJECT
+  credentials = var.GOOGLE_CREDENTIALS
+  region      = var.region
+}
+
+# --- SLO定義 ---
 resource "google_monitoring_slo" "availability_99" {
-  service      = "projects/horse-nft-lab-clean/services/horse-nft-lab-clean"
+  service      = "projects/${var.project_id}/services/${var.run_service}"
   display_name = "99% - 可用性・暦月"
 
   goal = 0.99
@@ -13,7 +20,7 @@ resource "google_monitoring_slo" "availability_99" {
   }
 }
 
-
+# --- アラートポリシー定義 ---
 resource "google_monitoring_alert_policy" "slo_burnrate_alert" {
   display_name = "SLO Burn Rate Alert"
   combiner     = "OR"
@@ -22,22 +29,15 @@ resource "google_monitoring_alert_policy" "slo_burnrate_alert" {
     display_name = "Burn rate above 10"
     condition_monitoring_query_language {
       query = <<EOT
-fetch slo("projects/horse-nft-lab-clean/services/horse-nft-lab-clean/serviceLevelObjectives/${google_monitoring_slo.availability_99.id}")
+fetch slo("projects/${var.project_id}/services/${var.run_service}/serviceLevelObjectives/${google_monitoring_slo.availability_99.name}")
 | condition val() > 10
 EOT
     }
   }
 
   notification_channels = [
-    "projects/horse-nft-lab-clean/notificationChannels/YOUR_SLACK_CHANNEL_ID"
+    var.slack_channel_id != "" ? var.slack_channel_id : "projects/${var.project_id}/notificationChannels/YOUR_SLACK_CHANNEL_ID"
   ]
 
   enabled = true
-}
-
-
-provider "google" {
-  project     = var.project_id
-  credentials = var.GOOGLE_CREDENTIALS
-  region      = "asia-northeast1"
 }
