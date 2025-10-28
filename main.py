@@ -3,7 +3,7 @@ import json
 import re
 import sys
 import traceback
-from flask import Flask, render_template_string, request, jsonify
+from flask import Flask, render_template_string, request, jsonify, abort
 from google.cloud import storage, secretmanager
 import google.generativeai as genai
 
@@ -347,6 +347,10 @@ def generate():
         log_sli("horse_generate", False)
         print(traceback.format_exc(), file=sys.stderr)
         return "Internal Server Error", 500
+
+@app.get("/fail")
+def fail():
+    abort(500)  # 500 Internal 
 
 
 if __name__ == "__main__":
