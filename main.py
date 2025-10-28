@@ -200,11 +200,14 @@ RESULT_HTML = """
     </ul>
     <a href="/">もう一度診断する</a>
   </div>
-  <script>
-  if (window.fadeOutLoading) {
-    window.fadeOutLoading();
-  }
-</script>
+    <!-- ✅ ローディング消去を遅延発火 -->
+    <script>
+      setTimeout(() => {
+        if (window.fadeOutLoading) {
+          window.fadeOutLoading();
+        }
+      }, 300); // 0.3秒待ってからフェードアウト
+    </script>
 </body>
 </html>
 """
