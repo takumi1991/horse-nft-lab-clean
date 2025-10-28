@@ -61,14 +61,14 @@ HTML_FORM = """
     <div class="card">
       <h1>🐎 AI競走馬メーカー（SPI性格診断）</h1>
       <form id="quiz" action="/generate" method="post">
-        {% for i, q in enumerate(questions) %}
+        {% for q in questions %}
         <div class="question">
-          <b>{{ i+1 }}. {{ q }}</b><br>
-          <label><input type="radio" name="q{{i}}" value="1" required> 全く当てはまらない</label>
-          <label><input type="radio" name="q{{i}}" value="2"> あまり当てはまらない</label>
-          <label><input type="radio" name="q{{i}}" value="3"> どちらともいえない</label>
-          <label><input type="radio" name="q{{i}}" value="4"> やや当てはまる</label>
-          <label><input type="radio" name="q{{i}}" value="5"> よく当てはまる</label>
+          <b>{{ loop.index }}. {{ q }}</b><br>
+          <label><input type="radio" name="q{{ loop.index0 }}" value="1" required> 全く当てはまらない</label>
+          <label><input type="radio" name="q{{ loop.index0 }}" value="2"> あまり当てはまらない</label>
+          <label><input type="radio" name="q{{ loop.index0 }}" value="3"> どちらともいえない</label>
+          <label><input type="radio" name="q{{ loop.index0 }}" value="4"> やや当てはまる</label>
+          <label><input type="radio" name="q{{ loop.index0 }}" value="5"> よく当てはまる</label>
         </div>
         <hr>
         {% endfor %}
