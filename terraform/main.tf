@@ -25,7 +25,7 @@ resource "google_monitoring_service" "run" {
 
 # 可用性SLO
 resource "google_monitoring_slo" "availability_99" {
-  service      = google_monitoring_service.run.service_id  # ←ここに注目！
+  service      = google_monitoring_service.run.service_id
   display_name = "99% - 可用性・暦月"
 
   goal            = 0.99
@@ -33,8 +33,8 @@ resource "google_monitoring_slo" "availability_99" {
 
   request_based_sli {
     good_total_ratio {
-      good_service_filter  = "metric.type=\"run.googleapis.com/request_count\" AND metric.label.\"response_code_class\"=\"2xx\""
-      total_service_filter = "metric.type=\"run.googleapis.com/request_count\""
+      good_service_filter  = "resource.type=\"cloud_run_revision\" AND metric.type=\"run.googleapis.com/request_count\" AND metric.label.\"response_code_class\"=\"2xx\""
+      total_service_filter = "resource.type=\"cloud_run_revision\" AND metric.type=\"run.googleapis.com/request_count\""
     }
   }
 }
