@@ -98,7 +98,7 @@ HTML_FORM = """
         renderer: 'svg',
         loop: true,
         autoplay: false,
-        path: "https://assets6.lottiefiles.com/packages/lf20_iwmd6pyr.json"
+        path: '/static/racehorse.json'
       });
       return lottieAnim;
     }
