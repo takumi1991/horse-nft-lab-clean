@@ -98,7 +98,7 @@ HTML_FORM = """
         renderer: 'svg',
         loop: true,
         autoplay: false,
-        path: "https://lottie.host/379c4dbe-3f8f-4791-a5a2-90db5e0b00a7/WYlmyG4qz1.json"
+        path: "https://assets6.lottiefiles.com/packages/lf20_iwmd6pyr.json"
       });
       return lottieAnim;
     }
