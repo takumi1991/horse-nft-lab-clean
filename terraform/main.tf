@@ -34,3 +34,10 @@ EOT
 
   enabled = true
 }
+
+
+provider "google" {
+  project     = var.project_id
+  credentials = var.GOOGLE_CREDENTIALS
+  region      = "asia-northeast1"
+}
