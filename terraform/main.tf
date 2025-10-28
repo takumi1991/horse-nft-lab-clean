@@ -8,8 +8,8 @@ resource "google_monitoring_service" "run" {
   service_id   = var.run_service
   display_name = "Cloud Run Service - ${var.run_service}"
 
-  telemetry {
-    resource_name = "projects/${var.project_id}/services/${var.run_service}"
+  user_labels = {
+    environment = "production"
   }
 }
 
@@ -18,7 +18,6 @@ resource "google_monitoring_slo" "availability_99" {
   display_name = "99% - 可用性・暦月"
 
   goal                = 0.99
-  rolling_period_days = null
   calendar_period     = "MONTH"
 
   request_based_sli {
