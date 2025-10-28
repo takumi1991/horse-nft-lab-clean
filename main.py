@@ -1,4 +1,4 @@
-import os
+niimport os
 import uuid
 import io
 import json
@@ -91,7 +91,7 @@ HTML_FORM = """
         </div>
         <button id="submitBtn" type="submit">診断開始</button>
       </form>
-      <p class="hint">生成には数秒かかります。アニメーションが止まったら結果が表示されます。</p>
+      <p class="hint">生成には数秒かかります。</p>
     </div>
   </div>
 
@@ -99,7 +99,7 @@ HTML_FORM = """
   <div id="loading">
     <div class="inner">
       <div id="lottie" aria-label="loading animation"></div>
-      <div>生成中…少々お待ちください</div>
+      <div>Geminiで生成中…少々お待ちください</div>
     </div>
   </div>
 
