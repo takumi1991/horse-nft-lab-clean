@@ -17,12 +17,21 @@ resource "google_monitoring_slo" "availability_99" {
   service      = google_monitoring_service.run.name
   display_name = "99% - 可用性・暦月"
 
-  goal                = 0.99
-  calendar_period     = "MONTH"
+  goal            = 0.99
+  calendar_period = "MONTH"
 
   request_based_sli {
-    availability {
-      enabled = true
+    good_total_ratio {
+      good_service_filter = <<EOT
+metric.type="run.googleapis.com/request_count"
+resource.type="cloud_run_revision"
+metric.label.response_code_class="2xx"
+EOT
+
+      total_service_filter = <<EOT
+metric.type="run.googleapis.com/request_count"
+resource.type="cloud_run_revision"
+EOT
     }
   }
 }
