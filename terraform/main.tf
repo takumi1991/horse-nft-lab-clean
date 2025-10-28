@@ -4,13 +4,12 @@ provider "google" {
   region      = var.region
 }
 
+# Cloud RunサービスをMonitoring上のサービスとして定義
 resource "google_monitoring_service" "run" {
-  service_id   = var.run_service
   display_name = "Cloud Run Service - ${var.run_service}"
 
   basic_service {
     service_type = "CLOUD_RUN"
-    service_id   = var.run_service
   }
 
   user_labels = {
@@ -18,6 +17,7 @@ resource "google_monitoring_service" "run" {
   }
 }
 
+# SLO：99% 可用性
 resource "google_monitoring_slo" "availability_99" {
   service      = google_monitoring_service.run.name
   display_name = "99% - 可用性・暦月"
@@ -41,6 +41,7 @@ EOT
   }
 }
 
+# SLOバーンレートアラート
 resource "google_monitoring_alert_policy" "slo_burnrate_alert" {
   display_name = "SLO Burn Rate Alert"
   combiner     = "OR"
@@ -48,7 +49,7 @@ resource "google_monitoring_alert_policy" "slo_burnrate_alert" {
   conditions {
     display_name = "Burn rate above 10"
     condition_monitoring_query_language {
-      duration = "900s"
+      duration = "900s" # 15分間で評価
       query = <<EOT
 fetch slo("${google_monitoring_slo.availability_99.id}")
 | condition val() > 10
