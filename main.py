@@ -7,7 +7,7 @@ from flask import Flask, render_template_string, request, jsonify
 from google.cloud import storage, secretmanager
 import google.generativeai as genai
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 # --- Secret Managerから値を取得 ---
 def get_secret(secret_id: str) -> str:
@@ -115,6 +115,8 @@ HTML_FORM = """
     });
 
     window.addEventListener('load', ensureLottie, { once: true });
+    console.log("Lottie object:", lottie);
+    console.log("Container:", lottieContainer);
   </script>
 
   <style>
