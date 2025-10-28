@@ -57,7 +57,7 @@ HTML_FORM = """
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>NFT馬占い</title>
+  <title>馬占い</title>
   <script src="https://unpkg.com/lottie-web/build/player/lottie.min.js"></script>
   <style>
     :root { color-scheme: light dark; }
