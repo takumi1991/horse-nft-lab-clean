@@ -21,3 +21,17 @@ variable "slack_channel_id" {
   type        = string
   default     = ""
 }
+
+# Terraform Cloud の Variable で渡す GOOGLE_PROJECT と GOOGLE_CREDENTIALS を受け取るため
+variable "GOOGLE_PROJECT" {
+  description = "Alias for Terraform Cloud variable (same as project_id)"
+  type        = string
+  default     = ""
+}
+
+variable "GOOGLE_CREDENTIALS" {
+  description = "Base64-encoded GCP service account key (Sensitive)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
