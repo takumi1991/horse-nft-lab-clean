@@ -7,7 +7,6 @@ terraform {
       version = "~> 5.30.0"
     }
   }
-}
 
   cloud {
     organization = "YOUR_TERRAFORM_CLOUD_ORG"  # Terraform Cloud上のOrganization名
@@ -15,9 +14,4 @@ terraform {
       name = "horse-nft-lab-clean"
     }
   }
-}
-
-provider "google" {
-  project = "horse-nft-lab-clean"
-  region  = "asia-northeast1"
 }
