@@ -43,10 +43,14 @@ resource "google_monitoring_alert_policy" "slo_burnrate_alert" {
   conditions {
     display_name = "Burn rate above 10"
     condition_monitoring_query_language {
+      duration = "900s" # ←★ これが必須
       query = <<EOT
 fetch slo("${google_monitoring_slo.availability_99.id}")
 | condition val() > 10
 EOT
+      trigger {
+        count = 1
+      }
     }
   }
 
