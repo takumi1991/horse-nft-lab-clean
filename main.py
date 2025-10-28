@@ -44,7 +44,7 @@ HTML_FORM = """
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>🐴 AI競走馬メーカー</title>
+  <title>AI競走馬メーカー</title>
   <link rel="icon" href="{{ url_for('static', filename='fabicon.ico') }}" type="image/x-icon">
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; background: #fafafa; }
