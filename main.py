@@ -167,48 +167,92 @@ HTML_FORM = """
 """
 
 RESULT_HTML = """
-<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <title>診断結果</title>
-  <style>
-    body { font-family: system-ui, sans-serif; text-align: center; background: #fffaf0; margin: 0; }
-    .card { display: inline-block; margin-top: 50px; padding: 24px 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); background: #fff; }
-    h1 { margin-bottom: 10px; }
-    img { width: 400px; border-radius: 12px; margin-top: 16px; }
-    ul { list-style: none; padding: 0; }
-    li { margin: 4px 0; }
-    a { display: inline-block; margin-top: 20px; padding: 10px 18px; border-radius: 12px; background: #111; color: #fff; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>🐴 {{ name }}</h1>
-    <p><b>脚質：</b>{{ type }}</p>
-    <p><b>性格：</b>{{ personality }}</p>
+  <head>
+    <meta charset="utf-8">
+    <title>診断結果</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        text-align: center;
+        padding: 40px;
+        opacity: 0;
+        animation: fadeIn 0.8s ease forwards;
+        animation-delay: 0.4s; /* 馬が消えた直後に出る */
+        background: #fffaf5;
+      }
+      h2 { font-size: 28px; margin-bottom: 8px; }
+      h3 { margin-top: 30px; }
+      img {
+        width: 320px;
+        border-radius: 14px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        margin-top: 18px;
+        opacity: 0;
+        animation: fadeInImage 1.2s ease 0.8s forwards; /* 画像は少し遅れて出現 */
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 auto;
+        max-width: 280px;
+        text-align: left;
+      }
+      li {
+        padding: 6px 0;
+        border-bottom: 1px solid #eee;
+      }
+      a {
+        display: inline-block;
+        margin-top: 24px;
+        text-decoration: none;
+        color: #007BFF;
+        font-weight: 600;
+        transition: color 0.25s;
+      }
+      a:hover { color: #0056b3; }
+
+      /* ✨ フェードインアニメーション */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ✨ 画像だけ別タイミングでふわっと */
+      @keyframes fadeInImage {
+        from { opacity: 0; transform: scale(0.97); }
+        to { opacity: 1; transform: scale(1); }
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>{{ name }}</h2>
+    <p>脚質：{{ type }}</p>
+    <p>性格：{{ personality }}</p>
+
     {% if image_url %}
-      <img src="{{ image_url }}" alt="生成された競走馬の画像">
-    {% else %}
-      <p>⚠️ 画像生成に失敗しました。</p>
+      <img src="{{ image_url }}" alt="horse image">
     {% endif %}
-    <h3>能力ステータス</h3>
+
+    <h3>能力値</h3>
     <ul>
-      {% for k, v in stats.items() %}
-        <li><b>{{k}}</b>：{{v}}</li>
+      {% for key, value in stats.items() %}
+        <li>{{ key }}：{{ value }}</li>
       {% endfor %}
     </ul>
-    <a href="/">もう一度診断する</a>
-  </div>
+
+    <p><a href="/">もう一度診断する</a></p>
+
     <!-- ✅ ローディング消去を遅延発火 -->
     <script>
       setTimeout(() => {
         if (window.fadeOutLoading) {
           window.fadeOutLoading();
         }
-      }, 300); // 0.3秒待ってからフェードアウト
+      }, 300); // 0.3秒遅延で自然にフェードアウト
     </script>
-</body>
+  </body>
 </html>
 """
 
