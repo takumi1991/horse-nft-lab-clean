@@ -25,7 +25,7 @@ resource "google_monitoring_service" "run" {
 
 # 可用性SLO
 resource "google_monitoring_slo" "availability_99" {
-  service      = google_monitoring_service.run.id  # ←ここを .id に変更！
+  service      = google_monitoring_service.run.service_id  # ←ここに注目！
   display_name = "99% - 可用性・暦月"
 
   goal            = 0.99
