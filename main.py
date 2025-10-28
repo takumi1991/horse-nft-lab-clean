@@ -95,35 +95,33 @@ HTML_FORM = """
   const submitBtn = document.getElementById('submitBtn');
   const form = document.getElementById('quiz');
 
-  // ✅ 先読みしておく
+  // ✅ ページロード時に一度だけロードしておく
   function preloadLottie() {
-    return new Promise(resolve => {
-      lottieAnim = lottie.loadAnimation({
-        container: lottieContainer,
-        renderer: 'svg',
-        loop: true,
-        autoplay: false,
-        path: '/static/racehorse.json'
-      });
-      lottieAnim.addEventListener('DOMLoaded', () => {
-        console.log('Lottie preloaded');
-        resolve();
-      });
+    if (lottieAnim) return; // ← 二重初期化防止
+    lottieAnim = lottie.loadAnimation({
+      container: lottieContainer,
+      renderer: 'svg',
+      loop: true,
+      autoplay: false,
+      path: '/static/racehorse.json'
+    });
+    lottieAnim.addEventListener('DOMLoaded', () => {
+      console.log('Lottie preloaded');
     });
   }
 
   // ✅ 診断開始イベント
-  form.addEventListener('submit', async () => {
+  form.addEventListener('submit', (e) => {
     submitBtn.disabled = true;
     loading.style.display = 'flex';
     loading.style.opacity = 0;
-    await preloadLottie();     // ← 完全ロードを待つ
-    loading.style.transition = 'opacity 0.3s';
-    loading.style.opacity = 1; // ← フェードイン
-    lottieAnim.play();
+    loading.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => {
+      loading.style.opacity = 1;
+      if (lottieAnim) lottieAnim.play();
+    }, 50);
   });
 
-  // ✅ ページ読み込み時に先読みだけしておく
   window.addEventListener('load', preloadLottie, { once: true });
 </script>
 
