@@ -1,3 +1,14 @@
+resource "google_monitoring_service" "run" {
+  service_id   = var.run_service
+  display_name = "Cloud Run Service - ${var.run_service}"
+
+  telemetry {
+    resource_name = "projects/${var.project_id}/services/${var.run_service}"
+  }
+}
+
+
+
 provider "google" {
   project     = var.project_id != "" ? var.project_id : var.GOOGLE_PROJECT
   credentials = var.GOOGLE_CREDENTIALS
