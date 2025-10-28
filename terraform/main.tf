@@ -47,19 +47,16 @@ resource "google_monitoring_alert_policy" "slo_burnrate_alert" {
   conditions {
     display_name = "Burn rate above 10"
     condition_monitoring_query_language {
-      duration = "900s"
+      duration = "300s"
       query = <<EOT
-fetch slo("${google_monitoring_slo.availability_99.id}")
+fetch slo("projects/${var.project_id}/services/${google_monitoring_service.run.service_id}/serviceLevelObjectives/${google_monitoring_slo.availability_99.service_id}")
 | condition val() > 10
 EOT
-      trigger {
-        count = 1
-      }
     }
   }
 
   notification_channels = [
-    "projects/${var.project_id}/notificationChannels/${var.slack_channel_id}"
+    "projects/horse-nft-lab-clean/notificationChannels/11270000737687826943"
   ]
 
   enabled = true
