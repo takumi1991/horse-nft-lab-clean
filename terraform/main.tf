@@ -17,10 +17,10 @@ provider "google" {
 
 # --- SLO定義 ---
 resource "google_monitoring_slo" "availability_99" {
-  service      = "projects/${var.project_id}/services/${var.run_service}"
+  service      = google_monitoring_service.run.name
   display_name = "99% - 可用性・暦月"
 
-  goal = 0.99
+  goal                = 0.99
   rolling_period_days = null
   calendar_period     = "MONTH"
 
