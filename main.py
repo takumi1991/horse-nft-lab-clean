@@ -136,8 +136,6 @@ HTML_FORM = """
   window.addEventListener('load', preloadLottie, { once: true });
 
   // ✅ Flask側で生成完了後に呼ぶためのトリガー
-  // 生成が完了したタイミングで、バックエンドのレスポンスに
-  // <script>window.fadeOutLoading()</script> を含めると消える。
   window.fadeOutLoading = fadeOutLoading;
 </script>
 
@@ -202,6 +200,11 @@ RESULT_HTML = """
     </ul>
     <a href="/">もう一度診断する</a>
   </div>
+  <script>
+  if (window.fadeOutLoading) {
+    window.fadeOutLoading();
+  }
+</script>
 </body>
 </html>
 """
