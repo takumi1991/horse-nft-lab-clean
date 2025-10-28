@@ -95,9 +95,9 @@ HTML_FORM = """
   const submitBtn = document.getElementById('submitBtn');
   const form = document.getElementById('quiz');
 
-  // ✅ ページロード時に一度だけロードしておく
+  // ✅ 一度だけLottieロード
   function preloadLottie() {
-    if (lottieAnim) return; // ← 二重初期化防止
+    if (lottieAnim) return;
     lottieAnim = lottie.loadAnimation({
       container: lottieContainer,
       renderer: 'svg',
@@ -110,8 +110,18 @@ HTML_FORM = """
     });
   }
 
-  // ✅ 診断開始イベント
-  form.addEventListener('submit', (e) => {
+  // ✅ フェードアウト関数
+  function fadeOutLoading() {
+    loading.style.transition = 'opacity 0.6s ease';
+    loading.style.opacity = 0;
+    setTimeout(() => {
+      loading.style.display = 'none';
+      if (lottieAnim) lottieAnim.stop();
+    }, 600); // ← transition時間と合わせる
+  }
+
+  // ✅ フォーム送信時
+  form.addEventListener('submit', () => {
     submitBtn.disabled = true;
     loading.style.display = 'flex';
     loading.style.opacity = 0;
@@ -122,7 +132,13 @@ HTML_FORM = """
     }, 50);
   });
 
+  // ✅ ページ読み込み時
   window.addEventListener('load', preloadLottie, { once: true });
+
+  // ✅ Flask側で生成完了後に呼ぶためのトリガー
+  // 生成が完了したタイミングで、バックエンドのレスポンスに
+  // <script>window.fadeOutLoading()</script> を含めると消える。
+  window.fadeOutLoading = fadeOutLoading;
 </script>
 
   <style>
@@ -134,7 +150,8 @@ HTML_FORM = """
       align-items: center;
       justify-content: center;
       z-index: 9999;
-      transition: opacity 0.3s ease; /* ← フェード用 */
+      opacity: 0;
+      transition: opacity 0.6s ease;
     }
     #loading .inner {
       display: grid;
