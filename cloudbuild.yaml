@@ -1,8 +1,8 @@
 options:
   automap_substitutions: true
   substitution_option: ALLOW_LOOSE
-  cancel_build_on_update: true        # ← これが重要
-  logging: CLOUD_LOGGING_ONLY         # ← 同じ options 内にまとめる
+  cancel_build_on_update: true
+  logging: CLOUD_LOGGING_ONLY
 
 steps:
   - name: 'gcr.io/cloud-builders/docker'
