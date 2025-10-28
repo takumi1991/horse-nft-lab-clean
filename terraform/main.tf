@@ -39,7 +39,7 @@ resource "google_monitoring_slo" "availability_99" {
   }
 }
 
-# バーンレートアラート
+# バーンレートアラート1
 resource "google_monitoring_alert_policy" "slo_burnrate_alert" {
   display_name = "SLO Burn Rate Alert"
   combiner     = "OR"
