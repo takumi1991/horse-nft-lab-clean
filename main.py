@@ -55,6 +55,7 @@ HTML_FORM = """
     button { background: #111; color: #fff; border: 0; padding: 10px 18px; border-radius: 10px; cursor: pointer; }
     button:hover { background: #333; }
   </style>
+  <script src="https://unpkg.com/lottie-web/build/player/lottie.min.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -73,11 +74,70 @@ HTML_FORM = """
         <hr>
         {% endfor %}
         <div style="text-align:center;">
-          <button type="submit">診断する</button>
+          <button id="submitBtn" type="submit">診断する</button>
         </div>
       </form>
     </div>
   </div>
+
+  <!-- ✅ loading overlay -->
+  <div id="loading">
+    <div class="inner">
+      <div id="lottie" aria-label="loading animation"></div>
+      <div style="font-size:18px; font-weight:600;">Geminiで生成しています...</div>
+    </div>
+  </div>
+
+  <script>
+    let lottieAnim = null;
+    const lottieContainer = document.getElementById('lottie');
+    function ensureLottie() {
+      if (lottieAnim) return lottieAnim;
+      lottieAnim = lottie.loadAnimation({
+        container: lottieContainer,
+        renderer: 'svg',
+        loop: true,
+        autoplay: false,
+        path: '/static/horse_runner.json'
+      });
+      return lottieAnim;
+    }
+
+    const form = document.getElementById('quiz');
+    const loading = document.getElementById('loading');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', () => {
+      submitBtn.disabled = true;
+      loading.style.display = 'flex';
+      loading.style.background = 'rgba(255, 255, 255, 0.98)';
+      ensureLottie().play();
+    });
+
+    window.addEventListener('load', ensureLottie, { once: true });
+  </script>
+
+  <style>
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.98);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #loading .inner {
+      display: grid;
+      place-items: center;
+      gap: 18px;
+      color: #111;
+    }
+    #lottie {
+      width: 200px;
+      height: 200px;
+    }
+  </style>
 </body>
 </html>
 """
