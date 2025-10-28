@@ -11,6 +11,11 @@ resource "google_monitoring_service" "run" {
 
   basic_service {
     service_type = "CLOUD_RUN"
+
+    service_labels = {
+      location     = var.region
+      service_name = var.run_service
+    }
   }
 
   user_labels = {
