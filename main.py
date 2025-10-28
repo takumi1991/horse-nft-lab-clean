@@ -166,7 +166,7 @@ def generate():
 スコア: {json.dumps(scores, ensure_ascii=False)}
 """
 
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(prompt)
         raw_text = getattr(response, "text", "").strip()
 
@@ -184,7 +184,7 @@ def generate():
 
         # 画像生成
         image_prompt = f"A majestic Japanese racehorse named {name}, {type_} running style, realistic, no humans, no text."
-        image_model = genai.GenerativeModel("gemini-1.5-flash")
+        image_model = genai.GenerativeModel("gemini-2.5-flash-image")
         image_response = image_model.generate_content(image_prompt)
 
         image_data = None
